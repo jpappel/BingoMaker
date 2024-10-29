@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+
+# Editors
+.vscode
+.idea
+
+# Python
+__py_cache__
+.venv
+
+.env
