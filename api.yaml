@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Bingo  Maker API
+  description: A service for creating and managing tile sets containing text or image tiles and generating bingo cards from those sets.
+  version: 1.0.0
+
+tags:
+  - name: Tile Sets
+    description: Operations related to managing collections (sets) of tiles.
+  - name: Bingo Cards
+    description: Operations related to generating bingo cards based on tile sets.
+
+paths:
+  /tilesets:
+    get:
+      summary: List all available tile sets
+      description: Retrieve a list of all available tile sets.
+      responses:
+        '200':
+          description: A JSON array of available tile sets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TileSet'
+      tags:
+        - Tile Sets
+
+    post:
+      summary: Create a new tile set
+      description: Add a new tile set by specifying a list of text/image tiles.
+      requestBody:
+        description: Tile set object to be created
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTileSet'
+      responses:
+        '201':
+          description: Tile set successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TileSet'
+        '400':
+          description: Invalid input provided
+      tags:
+        - Tile Sets
+
+  /tilesets/{tilesetId}:
+    get:
+      summary: Get details of a specific tile set
+      description: Retrieve details of a tile set by its ID.
+      parameters:
+        - name: tilesetId
+          in: path
+          required: true
+          description: The ID of the tile set to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A JSON object with tile set details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TileSet'
+        '404':
+          description: Tile set not found
+      tags:
+        - Tile Sets
+
+    put:
+      summary: Update a tile set (add or remove tiles)
+      description: Modify the contents of an existing tile set by adding or removing text/image tiles.
+      parameters:
+        - name: tilesetId
+          in: path
+          required: true
+          description: The ID of the tile set to update
+          schema:
+            type: string
+      requestBody:
+        description: Provide a list of text or image tiles to add or remove from the tile set
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TileSetUpdate'
+      responses:
+        '200':
+          description: Tile set successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TileSet'
+        '404':
+          description: Tile set not found
+        '400':
+          description: Invalid input provided
+      tags:
+        - Tile Sets
+
+    delete:
+      summary: Delete a tile set
+      description: Remove a tile set from the collection by its ID.
+      parameters:
+        - name: tilesetId
+          in: path
+          required: true
+          description: The ID of the tile set to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Tile set successfully deleted
+        '404':
+          description: Tile set not found
+      tags:
+        - Tile Sets
+
+  /bingocard/{tilesetId}:
+    get:
+      summary: Generate a bingo card from a tile set
+      description: Generate a bingo card based on the tiles from an existing tile set.
+      parameters:
+        - name: tilesetId
+          in: path
+          required: true
+          description: The ID of the tile set to generate the bingo card from
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          description: The size (width and height) of the bingo card (e.g., 5 for a 5x5 grid)
+          schema:
+            type: integer
+            default: 5
+        - name: exluded_tags
+          in: query
+          required: false
+          description: A array of tags to exlude for this card
+          schema:
+            type: array
+            default: []
+            items:
+              type: string
+      responses:
+        '200':
+          description: A JSON object representing the generated bingo card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BingoCard'
+        '404':
+          description: Tile set not found
+        '400':
+          description: Invalid input or request parameters
+      tags:
+        - Bingo Cards
+
+components:
+  schemas:
+    TileSet:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the tile set
+        name:
+          type: string
+          description: The name of the tile set
+        tiles:
+          type: array
+          description: A list of tiles (each tile can be a text label or image URL)
+          items:
+            $ref: '#/components/schemas/Tile'
+      required:
+        - id
+        - name
+        - tiles
+
+    NewTileSet:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A name for the new tile set
+        tiles:
+          type: array
+          description: A list of new tiles (text or image URLs) to include in the set
+          items:
+            $ref: '#/components/schemas/Tile'
+      required:
+        - name
+        - tiles
+
+    TileSetUpdate:
+      type: object
+      properties:
+        tiles:
+          type: array
+          description: A list of tiles (text or image URLs) to add or remove from the set
+          items:
+            $ref: '#/components/schemas/Tile'
+      required:
+        - tiles
+    
+    Tile:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [text, image]
+          description: The type of tile; it can either be 'text' or 'image'
+        content:
+          type: string
+          description: The content of the tile (either a text string or image URL)
+        tags:
+          type: array
+          description: A array containing the tags for this tile
+          items:
+            type: string
+            description: A descriptor for the tile 
+          
+      required:
+        - type
+        - content
+
+    BingoCard:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique ID of the generated bingo card
+        tiles:
+          type: array
+          description: A array representing the bingo card layout with tile content.
+          items:
+            $ref: '#/components/schemas/Tile'
+        size:
+          type: integer
+          description: The dimensions (size x size) of the bingo card grid
+      required:
+        - id
+        - grid
+        - size
