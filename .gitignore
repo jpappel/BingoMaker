@@ -6,7 +6,7 @@
 .idea
 
 # Python
-__py_cache__
+__pycache__
 .venv
 
 .env
