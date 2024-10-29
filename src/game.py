@@ -1,5 +1,5 @@
 import random
-from typing import Iterable
+from collections.abc import Iterable
 
 
 class NoMatchingTile(Exception):
@@ -70,8 +70,8 @@ class TilePool:
         try:
             random.seed(self.seed)
             tile = random.choice(tuple(tiles))
-        except IndexError:
-            raise NoMatchingTile("No more valid tiles in pool")
+        except IndexError as e:
+            raise NoMatchingTile("No more valid tiles in pool") from e
 
         return tile
 

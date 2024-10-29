@@ -1,4 +1,4 @@
-from game import TilePool, Tile
+from game import Tile, TilePool
 
 
 def test_consistent_get_tile():
