@@ -2,8 +2,9 @@ import json
 
 from flask import Flask, jsonify, request
 
-from game import _example_game
+from game import _example_game, Board
 from serialization import BoardEncoder
+from disk_reader import read_text
 
 app = Flask(__name__)
 
@@ -17,7 +18,7 @@ def hello_world():
 def generate_card(tilesetId):
     size = request.args.get("size", 5, type=int)
     # excluded_tags = request.args.get("excluded_tags")
-    board = _example_game(size)
+    board = Board(read_text("nouns"), size=size, free_square=False)
     board.id = str(tilesetId)
     # HACK: serializing and deserializing is done to use jsonify on a dict
     return jsonify(json.loads(json.dumps(board, cls=BoardEncoder)))
