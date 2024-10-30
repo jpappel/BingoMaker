@@ -1,13 +1,13 @@
 import json
 
-import game
-import serialization
+from src.data.serialization import BoardEncoder
+from src.game.game import _example_game
 
 
 def test_serialize_board():
     def test_board(size: int):
-        board = game._example_game(size)
-        serialized = json.dumps(board, cls=serialization.BoardEncoder)
+        board = _example_game(size)
+        serialized = json.dumps(board, cls=BoardEncoder)
         deserialized = json.loads(serialized)
         assert board.id == deserialized["id"]
         assert board.seed == deserialized["seed"]
