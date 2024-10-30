@@ -100,6 +100,11 @@ class Board:
 
 
 def _example_game(size: int) -> Board:
-    tiles = frozenset([Tile(f"Tile {i}") for i in range((size + 1) ** 2)])
+    tiles = frozenset(
+        [
+            Tile(f"Tile {i}", tags=frozenset([str(i), f"tag_{i % size}"]))
+            for i in range((size + 1) ** 2)
+        ]
+    )
     pool = TilePool(tiles)
     return Board(pool, free_square=False, seed=0)
