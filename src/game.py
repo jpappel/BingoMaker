@@ -107,4 +107,4 @@ def _example_game(size: int) -> Board:
         ]
     )
     pool = TilePool(tiles)
-    return Board(pool, free_square=False, seed=0)
+    return Board(pool, size=size, free_square=False, seed=0)
