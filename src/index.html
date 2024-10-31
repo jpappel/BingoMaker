@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bingo Card Maker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header Bar with Login Button, will add the name to the top of card when that function is added -->
+  <header>
+    <div class="header-bar">
+      <h1>Bingo Card Maker</h1>
+      <button class="login-button">Login</button>
+    </div>
+  </header>
+  <main>
+   
+    <div class="bingo-heading">
+      <h2>BINGO</h2>
+      <hr>
+    </div>
+
+    <!-- Bingo Card Grid -->
+    <section class="bingo-card" id="bingo-card">
+      <!-- Predefined bingo grid with numbered cells, possibly will gen this with js in the future  -->
+      <div class="bingo-cell" id="cell-1"></div>
+      <div class="bingo-cell" id="cell-2"></div>
+      <div class="bingo-cell" id="cell-3"></div>
+      <div class="bingo-cell" id="cell-4"></div>
+      <div class="bingo-cell" id="cell-5"></div>
+
+      <div class="bingo-cell" id="cell-6"></div>
+      <div class="bingo-cell" id="cell-7"></div>
+      <div class="bingo-cell" id="cell-8"></div>
+      <div class="bingo-cell" id="cell-9"></div>
+      <div class="bingo-cell" id="cell-10"></div>
+
+      <div class="bingo-cell" id="cell-11"></div>
+      <div class="bingo-cell" id="cell-12"></div>
+      <div class="bingo-cell" id="cell-13"></div> <!-- Center cell -->
+      <div class="bingo-cell" id="cell-14"></div>
+      <div class="bingo-cell" id="cell-15"></div>
+
+      <div class="bingo-cell" id="cell-16"></div>
+      <div class="bingo-cell" id="cell-17"></div>
+      <div class="bingo-cell" id="cell-18"></div>
+      <div class="bingo-cell" id="cell-19"></div>
+      <div class="bingo-cell" id="cell-20"></div>
+
+      <div class="bingo-cell" id="cell-21"></div>
+      <div class="bingo-cell" id="cell-22"></div>
+      <div class="bingo-cell" id="cell-23"></div>
+      <div class="bingo-cell" id="cell-24"></div>
+      <div class="bingo-cell" id="cell-25"></div>
+    </section>
+
+    <!-- Buttons -->
+    <div class="button-container">
+      <button id="edit-btn">Edit</button>
+      <button id="print-btn">Print Bingo Card</button>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span id="close-modal" class="close">&times;</span>
+        <h2>Edit Bingo Words</h2>
+        <textarea id="modal-input" placeholder="Enter words or numbers, one per line"></textarea>
+        <button id="save-btn">Save</button>
+      </div>
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
