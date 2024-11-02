@@ -7,13 +7,13 @@ DEPLOY_BIND := 0.0.0.0:8080
 all: lint
 
 lint:
-	uvx ruff check
+	uv run ruff check
 
 lint-fix:
-	uvx ruff check --fix
+	uv run ruff check --fix
 
 format:
-	uvx ruff format
+	uv run ruff format
 
 server:
 	uv run --directory=src __init__.py
@@ -30,7 +30,7 @@ test:
 	uv run pytest
 
 clean:
-	uvx ruff clean
+	uv run ruff clean
 
 info:
 	@echo "Targets"
