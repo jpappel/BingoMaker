@@ -12,4 +12,3 @@ def example_game(size: int, seed: int = 0, free_square: bool = False) -> Board:
     free_tile = Tile("Free", frozenset(), "free_url") if free_square else None
     pool = TilePool(tiles, free_square=free_tile)
     return Board(pool, size=size, free_square=free_square, seed=seed)
-

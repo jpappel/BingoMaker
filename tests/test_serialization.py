@@ -1,8 +1,8 @@
 import json
 
-from src.data.serialization import BoardEncoder
+from examples import example_game
 
-from .examples import example_game
+from src.data.serialization import BoardEncoder
 
 
 def test_serialize_board():
