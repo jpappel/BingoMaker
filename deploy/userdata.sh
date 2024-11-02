@@ -1,9 +1,11 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-yum -y git
+yum install -y git make
+export HOME=/root
+
 git clone https://github.com/cs399f24/BingoMaker
+cd BingoMaker
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
-UV=$HOME/.cargo/bin/uv
-cd BingoMaker
+source $HOME/.cargo/env
 make deploy

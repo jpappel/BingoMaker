@@ -2,7 +2,7 @@
 
 DEPLOY_NAME := BingoMaker
 DEPLOY_WORKERS := 3
-DEPLOY_BIND := 0.0.0.0:8080
+DEPLOY_BIND := 0.0.0.0:80
 
 all: lint
 
