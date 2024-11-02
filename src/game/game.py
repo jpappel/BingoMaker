@@ -97,14 +97,3 @@ class Board:
             mid = size // 2
             self.board[mid][mid] = pool.get_free()
             self.checked[mid][mid] = True
-
-
-def _example_game(size: int) -> Board:
-    tiles = frozenset(
-        [
-            Tile(f"Tile {i}", tags=frozenset([str(i), f"tag_{i % size}"]))
-            for i in range((size + 1) ** 2)
-        ]
-    )
-    pool = TilePool(tiles)
-    return Board(pool, size=size, free_square=False, seed=0)
