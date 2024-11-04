@@ -18,9 +18,7 @@ def create_app() -> Flask:
     def generate_card(tilesetId):
         size = request.args.get("size", 5, type=int)
         # excluded_tags = request.args.get("excluded_tags")
-        board = Board(
-            read_text("nouns"), size=size, free_square=False, seed=int(tilesetId)
-        )
+        board = Board(read_text("nouns"), size=size, free_square=False, seed=int(tilesetId))
         board.id = str(tilesetId)
         # HACK: serializing and deserializing is done to use jsonify on a dict
         return jsonify(json.loads(json.dumps(board, cls=BoardEncoder)))

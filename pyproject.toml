@@ -12,16 +12,14 @@ dependencies = [
 ]
 
 [tool.uv]
-dev-dependencies = [
-    "pytest>=8.3.3",
-    "ruff>=0.7.1",
-]
+dev-dependencies = ["pytest>=8.3.3", "ruff>=0.7.1"]
 
 [tool.pytest.ini_options]
-pythonpath = [ ".", "src"]
-testpaths = [
-    "tests"
-]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
 
 [tool.ruff.lint]
 select = [
