@@ -3,9 +3,11 @@ import json
 from pymongo import MongoClient
 
 
-def get_all_pools(database_name, collection_name):
+def get_all_pools(
+    database_name, collection_name, host: str = "localhost", port: int = 27017
+):
     # Initialize MongoDB client
-    client = MongoClient("mongodb://localhost:27017/")
+    client = MongoClient(host=host, port=port)
     db = client[database_name]
     collection = db[collection_name]
 
@@ -19,9 +21,16 @@ def get_all_pools(database_name, collection_name):
         return None
 
 
-def get_tile_pool(database_name, collection_name, tile_pool_id, owner):
+def get_tile_pool(
+    database_name,
+    collection_name,
+    tile_pool_id,
+    owner,
+    host: str = "localhost",
+    port: int = 27017,
+):
     # Initialize MongoDB client
-    client = MongoClient("mongodb://localhost:27017/")
+    client = MongoClient(host=host, port=port)
     db = client[database_name]
     collection = db[collection_name]
 
