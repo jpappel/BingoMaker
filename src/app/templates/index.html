@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Bingo Card Maker</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
   <!-- Header Bar with Login Button, will add the name to the top of card when that function is added -->
@@ -70,6 +70,6 @@
       </div>
     </div>
   </main>
-  <script src="script.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
