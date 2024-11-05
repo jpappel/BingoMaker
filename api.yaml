@@ -1,135 +1,135 @@
 openapi: 3.0.3
 info:
   title: Bingo  Maker API
-  description: A service for creating and managing tile sets containing text or image tiles and generating bingo cards from those sets.
-  version: 1.0.0
+  description: A service for creating and managing tile pools containing text or image tiles and generating bingo cards from those pools.
+  version: 0.2.0
 
 tags:
-  - name: Tile Sets
-    description: Operations related to managing collections (sets) of tiles.
+  - name: Tile Pools
+    description: Operations related to managing collections (pools) of tiles.
   - name: Bingo Cards
-    description: Operations related to generating bingo cards based on tile sets.
+    description: Operations related to generating bingo cards based on tile pools.
 
 paths:
-  /tilesets:
+  /tilepools:
     get:
-      summary: List all available tile sets
-      description: Retrieve a list of all available tile sets.
+      summary: List all available tile pools
+      description: Retrieve a list of all available tile pools.
       responses:
         '200':
-          description: A JSON array of available tile sets
+          description: A JSON array of available tile pools
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TileSet'
+                  $ref: '#/components/schemas/TilePool'
       tags:
-        - Tile Sets
+        - Tile Pools
 
     post:
-      summary: Create a new tile set
-      description: Add a new tile set by specifying a list of text/image tiles.
+      summary: Create a new tile pool
+      description: Add a new tile pool by specifying a list of text/image tiles.
       requestBody:
-        description: Tile set object to be created
+        description: Tile pool object to be created
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewTileSet'
+              $ref: '#/components/schemas/NewTilePool'
       responses:
         '201':
-          description: Tile set successfully created
+          description: Tile pool successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TileSet'
+                $ref: '#/components/schemas/TilePool'
         '400':
           description: Invalid input provided
       tags:
-        - Tile Sets
+        - Tile Pools
 
-  /tilesets/{tilesetId}:
+  /tilepools/{tilepoolId}:
     get:
-      summary: Get details of a specific tile set
-      description: Retrieve details of a tile set by its ID.
+      summary: Get details of a specific tile pool
+      description: Retrieve details of a tile pool by its ID.
       parameters:
-        - name: tilesetId
+        - name: tilepoolId
           in: path
           required: true
-          description: The ID of the tile set to retrieve
+          description: The ID of the tile pool to retrieve
           schema:
             type: string
       responses:
         '200':
-          description: A JSON object with tile set details
+          description: A JSON object with tile pool details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TileSet'
+                $ref: '#/components/schemas/TilePool'
         '404':
-          description: Tile set not found
+          description: Tile pool not found
       tags:
-        - Tile Sets
+        - Tile Pools
 
-    put:
-      summary: Update a tile set (add or remove tiles)
-      description: Modify the contents of an existing tile set by adding or removing text/image tiles.
+    patch:
+      summary: Update a tile pool (add or remove tiles)
+      description: Modify the contents of an existing tile pool by adding or removing text/image tiles.
       parameters:
-        - name: tilesetId
+        - name: tilepoolId
           in: path
           required: true
-          description: The ID of the tile set to update
+          description: The ID of the tile pool to update
           schema:
             type: string
       requestBody:
-        description: Provide a list of text or image tiles to add or remove from the tile set
+        description: Provide a list of text or image tiles to add or remove from the tile pool
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TileSetUpdate'
+              $ref: '#/components/schemas/TilePoolUpdate'
       responses:
         '200':
-          description: Tile set successfully updated
+          description: Tile pool successfully updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TileSet'
+                $ref: '#/components/schemas/TilePool'
         '404':
-          description: Tile set not found
+          description: Tile pool not found
         '400':
           description: Invalid input provided
       tags:
-        - Tile Sets
+        - Tile Pools
 
     delete:
-      summary: Delete a tile set
-      description: Remove a tile set from the collection by its ID.
+      summary: Delete a tile pool
+      description: Remove a tile pool from the collection by its ID.
       parameters:
-        - name: tilesetId
+        - name: tilepoolId
           in: path
           required: true
-          description: The ID of the tile set to delete
+          description: The ID of the tile pool to delete
           schema:
             type: string
       responses:
         '204':
-          description: Tile set successfully deleted
+          description: Tile pool successfully deleted
         '404':
-          description: Tile set not found
+          description: Tile pool not found
       tags:
-        - Tile Sets
+        - Tile Pools
 
-  /bingocard/{tilesetId}:
+  /bingocard/{tilepoolId}:
     get:
-      summary: Generate a bingo card from a tile set
-      description: Generate a bingo card based on the tiles from an existing tile set.
+      summary: Generate a bingo card from a tile pool
+      description: Generate a bingo card based on the tiles from an existing tile pool.
       parameters:
-        - name: tilesetId
+        - name: tilepoolId
           in: path
           required: true
-          description: The ID of the tile set to generate the bingo card from
+          description: The ID of the tile pool to generate the bingo card from
           schema:
             type: string
         - name: size
@@ -139,7 +139,7 @@ paths:
           schema:
             type: integer
             default: 5
-        - name: exluded_tags
+        - name: excluded_tags
           in: query
           required: false
           description: A array of tags to exlude for this card
@@ -156,7 +156,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BingoCard'
         '404':
-          description: Tile set not found
+          description: Tile pool not found
         '400':
           description: Invalid input or request parameters
       tags:
@@ -164,15 +164,15 @@ paths:
 
 components:
   schemas:
-    TileSet:
+    TilePool:
       type: object
       properties:
         id:
           type: string
-          description: The unique identifier for the tile set
+          description: The unique identifier for the tile pool
         name:
           type: string
-          description: The name of the tile set
+          description: The name of the tile pool
         tiles:
           type: array
           description: A list of tiles (each tile can be a text label or image URL)
@@ -183,27 +183,27 @@ components:
         - name
         - tiles
 
-    NewTileSet:
+    NewTilePool:
       type: object
       properties:
         name:
           type: string
-          description: A name for the new tile set
+          description: A name for the new tile pool
         tiles:
           type: array
-          description: A list of new tiles (text or image URLs) to include in the set
+          description: A list of new tiles (text or image URLs) to include in the pool
           items:
             $ref: '#/components/schemas/Tile'
       required:
         - name
         - tiles
 
-    TileSetUpdate:
+    TilePoolUpdate:
       type: object
       properties:
         tiles:
           type: array
-          description: A list of tiles (text or image URLs) to add or remove from the set
+          description: A list of tiles (text or image URLs) to add or remove from the pool
           items:
             $ref: '#/components/schemas/Tile'
       required:
