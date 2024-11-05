@@ -120,6 +120,31 @@ class TilePoolDB:
             logger.error(f"Failed to delete tiles from tile pool: {str(e)}")
             return False
 
+    def get_all_pools(self):
+        try:
+            items = list(self.collection.find())
+            return items
+
+        except Exception as e:
+            print(f"Failed to retrieve tile pools: {str(e)}")
+            return None
+
+    def get_tile_pool(
+        self,
+        tile_pool_id: str,
+        owner: str,
+    ):
+        try:
+            # Find the specific document by TilePoolId and Owner
+            item = self.collection.find_one(
+                {"TilePoolId": tile_pool_id, "Owner": owner}
+            )
+            return item
+
+        except Exception as e:
+            print(f"Failed to retrieve tile pool: {str(e)}")
+        return None
+
 
 if __name__ == "__main__":
     db = TilePoolDB("mongodb://localhost:27017/", "BingoBakerDB", "TilePools")
