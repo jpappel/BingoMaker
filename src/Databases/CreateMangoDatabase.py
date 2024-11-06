@@ -81,6 +81,36 @@ class TilePoolDB:
             logger.error(f"Failed to delete tile pools for owner '{owner}': {str(e)}")
         return False
 
+    def update_tiles(
+        self,
+        tile_pool_id: str,
+        removals: list[str] | None = None,
+        insertions: list[Tiles] | None = None,
+    ):
+        """Update tiles within a tile pool.
+
+        Removals are performed before insertions
+        """
+        if removals is None and insertions is None:
+            return False
+
+        try:
+            operation = {}
+            if removals is not None:
+                operation["$pull"] = {"Tiles": {"Content": {"$in": removals}}}
+            if insertions is not None:
+                # TODO: correctly parse insertions
+                operation["$set"] = {}
+            if removals is not None:
+                self.collection.update_one(
+                    {"_id": tile_pool_id},
+                    operation,
+                )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to update tile pool {tile_pool_id}: {str(e)}")
+        return False
+
     def delete_specific_tiles(
         self,
         tile_pool_id: str,
@@ -110,7 +140,7 @@ class TilePoolDB:
         return False
 
     def get_tile_pools(self, quantity: int | None = None):
-        """Get multipletile pools from the database, defaults to all"""
+        """Get multiple tile pools from the database, defaults to all"""
         if quantity is not None and quantity < 1:
             print(f"Invalid quantity: {quantity}")
             return
@@ -125,7 +155,7 @@ class TilePoolDB:
 
         except Exception as e:
             print(f"Failed to retrieve tile pools: {str(e)}")
-            return None
+            return
 
     def get_tile_pool(
         self,
@@ -138,27 +168,3 @@ class TilePoolDB:
         except Exception as e:
             print(f"Failed to retrieve tile pool: {str(e)}")
         return None
-
-
-if __name__ == "__main__":
-    db = TilePoolDB("mongodb://localhost:27017/", "BingoBakerDB", "TilePools")
-
-    tile_pool_name = "example-tilepool4"
-    tiles = ["tile1", "tile2", "tile3"]
-    owner = "us-east-1:example-cognito-id"
-
-    # Insert only if user is an admin
-    result = db.insert_tile_pool(tile_pool_name, tiles, owner)
-
-    if result:
-        tile_pool = db.collection.find_one({"_id": ObjectId(result)})
-        logger.info(f"Retrieved tile pool: {tile_pool}")
-    else:
-        logger.error("Failed to insert tile pool.")
-
-    # Delete specific tiles if the user is the owner
-
-    # Clean up all data if user is admin
-    if is_admin := True:
-        db.collection.delete_many({})
-        print("deleted all data")
