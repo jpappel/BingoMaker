@@ -2,6 +2,7 @@ import mongomock
 import pytest
 
 from Databases import CreateMangoDatabase
+from game import Tile, TilePool
 
 DB_NAME = "BingoMakerTestDB"
 COLLECTION_NAME = "BingoMakerTestCollection"
@@ -22,7 +23,10 @@ def db():
 
 @pytest.fixture
 def one_pool(db: TilePoolDBTest):
-    pool_id = db.insert_tile_pool("NAME", ["1", "2", "3"], "owner", "Free")
+    free_tile = Tile("Free")
+    tiles = frozenset(Tile(f"{i}") for i in range(3))
+    pool = TilePool(tiles, free_tile)
+    pool_id = db.insert_tile_pool("NAME", "owner", pool)
     assert pool_id is not None
     return db, pool_id
 
@@ -31,25 +35,31 @@ def one_pool(db: TilePoolDBTest):
 def many_pools(db: TilePoolDBTest):
     pool_ids: list[str] = []
     for i in range(10):
-        pool_id = db.insert_tile_pool(
-            f"Pool {i}", [f"{j+i}" for j in range(3)], "owner", f"Free {i}"
-        )
+        free = Tile(f"Free {i}")
+        tiles = frozenset(Tile(f"{j+i}") for j in range(3))
+        pool = TilePool(tiles, free)
+
+        name = f"Pool {i}"
+        pool_id = db.insert_tile_pool(name, "owner", pool)
         assert pool_id is not None
         pool_ids.append(pool_id)
     return db, pool_ids
 
 
 def test_insert_query(db: TilePoolDBTest):
-    pool_id = db.insert_tile_pool("NAME", ["1", "2", "3"], "owner", "Free")
+    free_tile = Tile("Free")
+    tiles = frozenset(Tile(f"{i}") for i in range(3))
+    in_pool = TilePool(tiles, free_tile)
+    pool_id = db.insert_tile_pool("NAME", "owner", in_pool)
     assert pool_id is not None
 
-    pool = db.get_tile_pool(pool_id)
-    assert pool is not None
+    result = db.get_tile_pool(pool_id)
+    assert result is not None
 
-    assert pool["Owner"] == "owner"
-    assert pool["Name"] == "NAME"
-    assert pool["Tiles"] == ["1", "2", "3"]
-    assert pool["FreeTile"] == "Free"
+    assert result["owner"] == "owner"
+    assert result["name"] == "NAME"
+    assert result["tiles"].tiles == in_pool.tiles
+    assert result["tiles"].free == in_pool.free
 
 
 def test_insert_delete(one_pool: tuple[TilePoolDBTest, str]):
@@ -63,11 +73,12 @@ def test_get_quantity_tile_pools(many_pools: tuple[TilePoolDBTest, list[str]]):
     assert db.get_tile_pools(0) is None
     assert db.get_tile_pools(-1) is None
 
-    pools = db.get_tile_pools(5)
-    assert pools is not None
+    results = db.get_tile_pools(5)
+    assert results is not None
 
-    for pool in pools:
-        assert str(pool["_id"]) in pool_ids
+    for result in results:
+        assert result["id"] in pool_ids
+        assert result["owner"] == "owner"
 
 
 def test_delete_by_owner(many_pools: tuple[TilePoolDBTest, list[str]]):
@@ -75,6 +86,7 @@ def test_delete_by_owner(many_pools: tuple[TilePoolDBTest, list[str]]):
     assert db.delete_tile_pool_by_owner("owner")
     for pool_id in pool_ids:
         assert db.get_tile_pool(pool_id) is None
+
 
 def test_update_tiles():
     pass

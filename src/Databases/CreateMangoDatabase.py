@@ -1,11 +1,39 @@
 import logging
 from datetime import UTC, datetime
+from typing import TypedDict
 
 from bson.objectid import ObjectId
 from pymongo import MongoClient, errors
 
+from game import Tile, TilePool
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _tile_to_dict(tile: Tile) -> dict[str, str | list[str]]:
+    return {
+        "Content": tile.text if tile.image_url is None else tile.image_url,
+        "Type": "text" if tile.image_url is None else "image",
+        "Tags": list(tile.tags),
+    }
+
+
+def _dict_to_tile(item: dict[str, str | list[str]]) -> Tile:
+    text = item["Content"]
+    assert isinstance(text, str)
+    tags = frozenset(item["Tags"])
+    image_url = item["Content"] if item["Type"] == "image" else None
+    assert isinstance(image_url, str) or image_url is None
+    return Tile(text, tags, image_url)
+
+
+class DBResult(TypedDict):
+    owner: str
+    name: str
+    tiles: TilePool
+    id: str
+    created_at: str
 
 
 class TilePoolDB:
@@ -23,16 +51,12 @@ class TilePoolDB:
         except errors.ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
 
-    def insert_tile_pool(
-        self,
-        name: str,
-        tiles: list[str],
-        owner: str,
-        free_tile: str | None = None,
-    ) -> str | None:
+    def insert_tile_pool(self, name: str, owner: str, pool: TilePool) -> str | None:
         """Insert a tile pool into the MongoDB collection."""
 
         timestamp = datetime.now(UTC)
+
+        tiles = list(_tile_to_dict(tile) for tile in pool.tiles)
 
         item = {
             "Owner": owner,
@@ -41,8 +65,8 @@ class TilePoolDB:
             "CreatedAt": timestamp.isoformat(),
         }
 
-        if free_tile:
-            item["FreeTile"] = free_tile
+        if pool.free:
+            item["FreeTile"] = _tile_to_dict(pool.free)
 
         try:
             result = self.collection.insert_one(item)
@@ -85,7 +109,7 @@ class TilePoolDB:
         self,
         tile_pool_id: str,
         removals: list[str] | None = None,
-        insertions: list[Tiles] | None = None,
+        insertions: list[Tile] | None = None,
     ):
         """Update tiles within a tile pool.
 
@@ -139,7 +163,7 @@ class TilePoolDB:
             logger.error(f"Failed to delete tiles from tile pool: {str(e)}")
         return False
 
-    def get_tile_pools(self, quantity: int | None = None):
+    def get_tile_pools(self, quantity: int | None = None) -> list[DBResult] | None:
         """Get multiple tile pools from the database, defaults to all"""
         if quantity is not None and quantity < 1:
             print(f"Invalid quantity: {quantity}")
@@ -151,7 +175,21 @@ class TilePoolDB:
                 if quantity is None
                 else list(self.collection.find(batch_size=quantity))
             )
-            return items
+            results = []
+            for item in items:
+                tiles = frozenset(_dict_to_tile(tile) for tile in item["Tiles"])
+                free = _dict_to_tile(item["FreeTile"]) if "FreeTile" in item else None
+                pool = TilePool(tiles, free)
+                results.append(
+                    {
+                        "owner": item["Owner"],
+                        "name": item["Name"],
+                        "tiles": pool,
+                        "id": str(item["_id"]),
+                        "created_at": item["CreatedAt"],
+                    }
+                )
+            return results
 
         except Exception as e:
             print(f"Failed to retrieve tile pools: {str(e)}")
@@ -160,11 +198,21 @@ class TilePoolDB:
     def get_tile_pool(
         self,
         tile_pool_id: str,
-    ):
+    ) -> DBResult | None:
         try:
             item = self.collection.find_one({"_id": ObjectId(tile_pool_id)})
-            return item
+            if item is not None:
+                tiles = frozenset(_dict_to_tile(tile) for tile in item["Tiles"])
+                free = _dict_to_tile(item["FreeTile"]) if "FreeTile" in item else None
+                pool = TilePool(tiles, free)
+                return {
+                    "owner": item["Owner"],
+                    "name": item["Name"],
+                    "tiles": pool,
+                    "id": str(item["_id"]),
+                    "created_at": item["CreatedAt"],
+                }
 
         except Exception as e:
             print(f"Failed to retrieve tile pool: {str(e)}")
-        return None
+        return
