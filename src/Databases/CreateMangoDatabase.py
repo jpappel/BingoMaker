@@ -18,14 +18,14 @@ class TilePoolDB:
                 f"Connected to MongoDB collection '{collection_name}' \
                     in database '{database_name}'."
             )
-            self.collection.create_index("TilePoolName", unique=True)
-            logger.info("Unique index created for 'TilePoolName'.")
+            self.collection.create_index("Name", unique=True)
+            logger.info("Unique index created for 'Name'.")
         except errors.ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
 
     def insert_tile_pool(
         self,
-        tile_pool_name: str,
+        name: str,
         tiles: list[str],
         owner: str,
         free_tile: str | None = None,
@@ -36,7 +36,7 @@ class TilePoolDB:
 
         item = {
             "Owner": owner,
-            "TilePoolName": tile_pool_name,
+            "Name": name,
             "Tiles": tiles,
             "CreatedAt": timestamp.isoformat(),
         }
@@ -46,12 +46,10 @@ class TilePoolDB:
 
         try:
             result = self.collection.insert_one(item)
-            logger.info(
-                f"{owner} created tile pool '{tile_pool_name}' ({result.inserted_id})"
-            )
+            logger.info(f"{owner} created tile pool '{name}' ({result.inserted_id})")
             return str(result.inserted_id)
         except errors.DuplicateKeyError:
-            logger.warning(f"Tile pool '{tile_pool_name}' already exists.")
+            logger.warning(f"Tile pool '{name}' already exists.")
         except Exception as e:
             logger.error(f"Failed to insert tile pool: {str(e)}")
         return None
@@ -59,21 +57,14 @@ class TilePoolDB:
     def delete_tile_pool(self, tile_pool_id: str) -> bool:
         """Delete a tile pool document by its TilePoolId"""
         try:
-            tile_pool = self.collection.find_one({"TilePoolId": tile_pool_id})
-            if tile_pool is None:
-                logger.info(f"Tile pool with TilePoolId '{tile_pool_id}' not found.")
-                return False
+            result = self.collection.delete_one({"_id": ObjectId(tile_pool_id)})
 
-            result = self.collection.delete_one({"TilePoolId": tile_pool_id})
             if result.deleted_count > 0:
-                logger.info(
-                    f"Tile pool with TilePoolId '{tile_pool_id}' deleted successfully."
-                )
+                logger.info(f"Deleted Tile Pool ({tile_pool_id})")
                 return True
-            return False
         except Exception as e:
             logger.error(f"Failed to delete tile pool: {str(e)}")
-            return False
+        return False
 
     def delete_tile_pool_by_owner(self, owner: str) -> bool:
         """Delete all tile pools for a specific owner."""
@@ -86,10 +77,9 @@ class TilePoolDB:
                 return True
             else:
                 logger.info(f"No tile pools found for owner '{owner}'.")
-                return False
         except Exception as e:
             logger.error(f"Failed to delete tile pools for owner '{owner}': {str(e)}")
-            return False
+        return False
 
     def delete_specific_tiles(
         self,
@@ -115,14 +105,22 @@ class TilePoolDB:
                     f"Tiles {tiles_to_delete} deleted from tile pool '{tile_pool_id}'."
                 )
                 return True
-            return False
         except Exception as e:
             logger.error(f"Failed to delete tiles from tile pool: {str(e)}")
-            return False
+        return False
 
-    def get_all_pools(self):
+    def get_tile_pools(self, quantity: int | None = None):
+        """Get multipletile pools from the database, defaults to all"""
+        if quantity is not None and quantity < 1:
+            print(f"Invalid quantity: {quantity}")
+            return
+
         try:
-            items = list(self.collection.find())
+            items = (
+                list(self.collection.find())
+                if quantity is None
+                else list(self.collection.find(batch_size=quantity))
+            )
             return items
 
         except Exception as e:
@@ -132,13 +130,9 @@ class TilePoolDB:
     def get_tile_pool(
         self,
         tile_pool_id: str,
-        owner: str,
     ):
         try:
-            # Find the specific document by TilePoolId and Owner
-            item = self.collection.find_one(
-                {"TilePoolId": tile_pool_id, "Owner": owner}
-            )
+            item = self.collection.find_one({"_id": ObjectId(tile_pool_id)})
             return item
 
         except Exception as e:
