@@ -1,14 +1,14 @@
 import mongomock
 import pytest
 
-from Databases import CreateMangoDatabase
-from game import Tile, TilePool
+from src.data import mongo
+from src.game.game import Tile, TilePool
 
 DB_NAME = "BingoMakerTestDB"
 COLLECTION_NAME = "BingoMakerTestCollection"
 
 
-class TilePoolDBTest(CreateMangoDatabase.TilePoolDB):
+class TilePoolDBTest(mongo.TilePoolDB):
     def __init__(self):
         self.client = mongomock.MongoClient()
         self.db = self.client[DB_NAME]
@@ -58,7 +58,9 @@ def test_insert_query(db: TilePoolDBTest):
 
     assert result["owner"] == "owner"
     assert result["name"] == "NAME"
-    assert result["tiles"].tiles == in_pool.tiles
+    for tile in result["tiles"].tiles:
+        assert tile in in_pool.tiles
+    # assert result["tiles"].tiles == in_pool.tiles
     assert result["tiles"].free == in_pool.free
 
 

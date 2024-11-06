@@ -5,7 +5,7 @@ from typing import TypedDict
 from bson.objectid import ObjectId
 from pymongo import MongoClient, errors
 
-from game import Tile, TilePool
+from src.game.game import Tile, TilePool
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,9 +95,7 @@ class TilePoolDB:
         try:
             result = self.collection.delete_many({"Owner": owner})
             if result.deleted_count > 0:
-                logger.info(
-                    f"Deleted {result.deleted_count} tile pools for owner '{owner}'."
-                )
+                logger.info(f"Deleted {result.deleted_count} tile pools for owner '{owner}'.")
                 return True
             else:
                 logger.info(f"No tile pools found for owner '{owner}'.")
