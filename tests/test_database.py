@@ -43,13 +43,13 @@ def test_insert_query(db: TilePoolDBTest):
     pool_id = db.insert_tile_pool("NAME", ["1", "2", "3"], "owner", "Free")
     assert pool_id is not None
 
-    result = db.get_tile_pool(pool_id)
-    assert result is not None
+    pool = db.get_tile_pool(pool_id)
+    assert pool is not None
 
-    assert result["Owner"] == "owner"
-    assert result["Name"] == "NAME"
-    assert result["Tiles"] == ["1", "2", "3"]
-    assert result["FreeTile"] == "Free"
+    assert pool["Owner"] == "owner"
+    assert pool["Name"] == "NAME"
+    assert pool["Tiles"] == ["1", "2", "3"]
+    assert pool["FreeTile"] == "Free"
 
 
 def test_insert_delete(one_pool: tuple[TilePoolDBTest, str]):
@@ -58,8 +58,23 @@ def test_insert_delete(one_pool: tuple[TilePoolDBTest, str]):
     assert db.get_tile_pool(pool_id) is None
 
 
+def test_get_quantity_tile_pools(many_pools: tuple[TilePoolDBTest, list[str]]):
+    db, pool_ids = many_pools
+    assert db.get_tile_pools(0) is None
+    assert db.get_tile_pools(-1) is None
+
+    pools = db.get_tile_pools(5)
+    assert pools is not None
+
+    for pool in pools:
+        assert str(pool["_id"]) in pool_ids
+
+
 def test_delete_by_owner(many_pools: tuple[TilePoolDBTest, list[str]]):
     db, pool_ids = many_pools
     assert db.delete_tile_pool_by_owner("owner")
     for pool_id in pool_ids:
         assert db.get_tile_pool(pool_id) is None
+
+def test_update_tiles():
+    pass
