@@ -120,47 +120,20 @@ class TilePoolDB:
 
         try:
             operation = {}
-            if removals is not None:
+            if removals:
                 operation["$pull"] = {"Tiles": {"Content": {"$in": removals}}}
-            if insertions is not None:
-                # TODO: correctly parse insertions
-                operation["$set"] = {}
-            if removals is not None:
-                self.collection.update_one(
-                    {"_id": tile_pool_id},
-                    operation,
-                )
-            return True
+            if insertions:
+                operation["$push"] = {
+                    "Tiles": {"$each": [_tile_to_dict(tile) for tile in insertions]}
+                }
+            result = self.collection.find_one_and_update(
+                {"_id": ObjectId(tile_pool_id)},
+                operation,
+            )
+            print(result)
+            return result is not None
         except Exception as e:
             logger.error(f"Failed to update tile pool {tile_pool_id}: {str(e)}")
-        return False
-
-    def delete_specific_tiles(
-        self,
-        tile_pool_id: str,
-        tiles_to_delete: list[str],
-    ) -> bool:
-        """Delete specific tiles from a tile pool"""
-        try:
-            tile_pool = self.collection.find_one({"TilePoolId": tile_pool_id})
-            if tile_pool is None:
-                logger.info(f"Tile pool with TilePoolId '{tile_pool_id}' not found.")
-                return False
-
-            # Remove specified tiles
-            updated_tiles = [
-                tile for tile in tile_pool["Tiles"] if tile not in tiles_to_delete
-            ]
-            result = self.collection.update_one(
-                {"TilePoolId": tile_pool_id}, {"$set": {"Tiles": updated_tiles}}
-            )
-            if result.modified_count > 0:
-                logger.info(
-                    f"Tiles {tiles_to_delete} deleted from tile pool '{tile_pool_id}'."
-                )
-                return True
-        except Exception as e:
-            logger.error(f"Failed to delete tiles from tile pool: {str(e)}")
         return False
 
     def get_tile_pools(self, quantity: int | None = None) -> list[DBResult] | None:

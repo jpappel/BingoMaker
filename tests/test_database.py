@@ -88,5 +88,41 @@ def test_delete_by_owner(many_pools: tuple[TilePoolDBTest, list[str]]):
         assert db.get_tile_pool(pool_id) is None
 
 
-def test_update_tiles():
-    pass
+def test_remove_tiles(one_pool: tuple[TilePoolDBTest, str]):
+    db, pool_id = one_pool
+
+    assert db.update_tiles(pool_id, ["0", "1", "2"])
+
+    result = db.get_tile_pool(pool_id)
+    assert result
+
+    tiles = result["tiles"].tiles
+    assert len(tiles) == 0
+
+
+def test_add_tiles(one_pool: tuple[TilePoolDBTest, str]):
+    db, pool_id = one_pool
+
+    tiles = [Tile(f"{i}") for i in (4, 5, 6)]
+    assert db.update_tiles(pool_id, insertions=tiles)
+
+    result = db.get_tile_pool(pool_id)
+    assert result
+
+    tiles = result["tiles"].tiles
+    assert len(tiles) == 6
+
+
+def test_update_tiles(one_pool: tuple[TilePoolDBTest, str]):
+    db, pool_id = one_pool
+
+    tiles = [Tile(f"{i}") for i in (4, 5, 6)]
+    assert db.update_tiles(pool_id, ["0", "1", "2"], insertions=tiles)
+
+    result = db.get_tile_pool(pool_id)
+    assert result
+
+    tiles = result["tiles"].tiles
+    assert len(tiles) == 3
+    for tile in tiles:
+        assert tile.text in ("4", "5", "6")
