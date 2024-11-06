@@ -1,4 +1,6 @@
-from game import Tile, TilePool
+from examples import example_game
+
+from src.game.game import Tile, TilePool
 
 
 def test_consistent_get_tile():
@@ -12,3 +14,17 @@ def test_consistent_get_tile():
 
     for _ in range(length):
         assert pool.get_tile(seed=seed) == pool_2.get_tile(seed=seed)
+
+
+def test_set_free_tile():
+    # test an odd size board
+    game = example_game(5, 0, True)
+    middle_tile = game.board[2][2]
+    assert middle_tile.text == "Free"
+    assert middle_tile.image_url == "free_url"
+
+    # test an even size board
+    game = example_game(6, 0, True)
+    middle_tile = game.board[3][3]
+    assert middle_tile.text == "Free"
+    assert middle_tile.image_url == "free_url"

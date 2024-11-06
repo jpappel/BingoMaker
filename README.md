@@ -39,3 +39,14 @@ uvx ruff format
 uv tool run ruff check
 .venv/bin/ruff format
 ```
+
+### Development Server
+
+A local development server can be started
+
+## Deployment
+
+### Monolith
+
+The monolith version of the application can be deployed to a Linux VPS such as AWS EC2 by using the `userdata.sh` script provided in `deploy/`.
+The script assumes that the system the software is being installed on has access to curl and uses the `yum` package manager. 
