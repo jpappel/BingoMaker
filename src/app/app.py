@@ -1,4 +1,5 @@
 import json
+import random
 
 from flask import Flask, jsonify, request
 
@@ -14,14 +15,13 @@ def create_app() -> Flask:
     def hello_world():
         return "<p>Hello World</p>"
 
-    @app.route("/api/v1/bingocard/<tilesetId>")
-    def generate_card(tilesetId):
+    @app.route("/bingocard/<tilepoolId>")
+    def generate_card(tilepoolId):
         size = request.args.get("size", 5, type=int)
+        seed = request.args.get("seed", random.randint(0, 1 << 8), type=int)
         # excluded_tags = request.args.get("excluded_tags")
-        board = Board(
-            read_text("nouns"), size=size, free_square=False, seed=int(tilesetId)
-        )
-        board.id = str(tilesetId)
+        board = Board(read_text("nouns"), size=size, free_square=False, seed=seed)
+        board.id = str(tilepoolId)
         # HACK: serializing and deserializing is done to use jsonify on a dict
         return jsonify(json.loads(json.dumps(board, cls=BoardEncoder)))
 
