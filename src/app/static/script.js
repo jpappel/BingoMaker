@@ -1,5 +1,5 @@
 // Generate the bingo card on page load with random numbers, 
-generateBingoCard();
+fetchBingoCard();
 
 // Event listener for the "Edit" button
 document.getElementById('edit-btn').addEventListener('click', openModal);
@@ -17,6 +17,19 @@ window.addEventListener('click', outsideClick);
 document.getElementById('print-btn').addEventListener('click', () => {
   window.print();
 });
+
+
+function fetchBingoCard() {
+  console.log("Fetching Bingo Card");
+  fetch(`/api/v1/bingocard/${Math.floor(Math.random() * 1000)}`)
+  .then(response => response.json())
+  .then(data => {
+    // get data.tiles, and only content from each tile
+    return data.tiles.map(tile => tile.content);
+  })
+  .then (data => {console.log(data); return data;})
+  .then (data => generateBingoCard(data));
+}
 
 // generates bingo card with random numbers at startup and 
 function generateBingoCard(words = []) {
