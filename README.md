@@ -16,7 +16,7 @@ uv sync
 
 ### Testing
 
-To run tests for the project you can either run `uvx pytest` or activate the virtual environment and run `pytest`
+To run tests for the project you can either run `uv run pytest` or activate the virtual environment and run `pytest`
 
 ### Linting/Formatting
 
@@ -26,8 +26,7 @@ Linting can be done in the following ways
 
 ```bash
 make lint
-uvx ruff check
-uv tool run ruff check
+uv run ruff check
 .venv/bin/ruff check
 ```
 
@@ -35,14 +34,13 @@ Formatting can be done similarly
 
 ```bash
 make format
-uvx ruff format
-uv tool run ruff check
+uv run ruff format
 .venv/bin/ruff format
 ```
 
 ### Development Server
 
-A local development server can be started
+A local development server can be started via `make deploy`
 
 ## Deployment
 
