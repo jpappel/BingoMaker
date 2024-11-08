@@ -1,7 +1,7 @@
 import json
 import random
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 
 from data.disk_reader import read_text
 from data.serialization import BoardEncoder
@@ -13,7 +13,7 @@ def create_app() -> Flask:
 
     @app.route("/")
     def hello_world():
-        return "<p>Hello World</p>"
+        return render_template("index.html")
 
     @app.route("/bingocard/<tilepoolId>")
     def generate_card(tilepoolId):
