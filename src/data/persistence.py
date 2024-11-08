@@ -21,7 +21,7 @@ class TileDict(TypedDict):
 def tile_to_dict(tile: Tile) -> TileDict:
     return {
         "Content": tile.text if tile.image_url is None else tile.image_url,
-        "Type": "text" if tile.image_url is not None else "image",
+        "Type": "text" if tile.image_url is None else "image",
         "Tags": list(tile.tags),
     }
 
