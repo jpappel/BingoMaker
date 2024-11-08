@@ -60,7 +60,7 @@ class FileTilePoolDB(TilePoolDB):
         dir_ = self.root / owner
         dir_.mkdir(exist_ok=True)
 
-        id_ = uuid.uuid1().hex
+        id_ = uuid.uuid4().hex
         with open(dir_ / (id_ + ".json"), "w") as f:
             to_write = {
                 "Owner": owner,

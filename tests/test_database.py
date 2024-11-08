@@ -1,7 +1,7 @@
 import mongomock
 import pytest
 
-from src.data import FileTilePoolDB, mongo
+from src.data import FileTilePoolDB, MemoryTilePoolDB, mongo
 from src.data.persistence import TilePoolDB
 from src.game.game import Tile, TilePool
 
@@ -17,7 +17,7 @@ class TilePoolDBTest(mongo.TilePoolDB):
         self.collection.create_index("Name", unique=True)
 
 
-@pytest.fixture(params=[TilePoolDBTest, FileTilePoolDB])
+@pytest.fixture(params=[TilePoolDBTest, FileTilePoolDB, MemoryTilePoolDB])
 def db(request, tmp_path):
     driver = request.param(tmp_path) if request.param is FileTilePoolDB else request.param()
     return driver

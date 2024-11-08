@@ -34,7 +34,6 @@ def dict_to_tile(item: dict[str, str | list[str]]) -> Tile:
     image_url = item["Content"] if item["Type"] == "image" else None
     return Tile(text, tags, image_url)
 
-
 class TilePoolDB(abc.ABC):
     """Abstract class of that can create, modify, delete TilePools from storage"""
 
