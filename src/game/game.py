@@ -50,7 +50,9 @@ class TilePool:
 
     def _filter_by_tags(self, exclude_tags: list[str]) -> Iterable[Tile]:
         """Return an iterable over tiles which do not container any excluded tags"""
-        return filter(lambda tile: len(tile.tags.intersection(exclude_tags)) == 0, self.tiles)
+        return filter(
+            lambda tile: len(tile.tags.intersection(exclude_tags)) == 0, self.tiles
+        )
 
     def get_free(self) -> Tile:
         if self.free is None:
@@ -58,9 +60,13 @@ class TilePool:
 
         return self.free
 
-    def get_tile(self, exclude_tags: list[str] | None = None, seed: None | int = None) -> Tile:
+    def get_tile(
+        self, exclude_tags: list[str] | None = None, seed: None | int = None
+    ) -> Tile:
         """Get a tile from the tile pool"""
-        tiles = self.tiles if exclude_tags is None else self._filter_by_tags(exclude_tags)
+        tiles = (
+            self.tiles if exclude_tags is None else self._filter_by_tags(exclude_tags)
+        )
         try:
             random.seed(seed)
             tile = random.choice(tuple(tiles))
@@ -78,16 +84,19 @@ class Board:
         free_square: bool = True,
         seed: int = 0,
     ):
-        self.board = [[Tile("")] * size] * size
-        self.checked = [[False] * size] * size
+        self.board = []
         self.size = size
         self.seed = seed
         self.id = ""
+
+        used = []
         for x in range(size):
+            self.board.append([])
             for y in range(size):
-                self.board[x][y] = pool.get_tile(seed=self.seed * x + y)
+                new_tile = pool.get_tile(seed=self.seed * x + y, exclude_tags=used)
+                self.board[x].append(new_tile)
+                used.append(new_tile.text)
 
         if free_square:
             mid = size // 2
             self.board[mid][mid] = pool.get_free()
-            self.checked[mid][mid] = True
