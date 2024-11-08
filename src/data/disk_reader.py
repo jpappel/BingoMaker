@@ -3,8 +3,8 @@ import os
 import uuid
 from pathlib import Path
 
-from game.game import Tile, TilePool
 from data.persistence import DBResult, TilePoolDB, dict_to_tile, tile_to_dict
+from game.game import Tile, TilePool
 
 
 def read_text(path: str) -> TilePool:
@@ -86,7 +86,6 @@ class DiskTilePoolDB(TilePoolDB):
             result = self.get_tile_pool(tile_pool_id)
             if result is None:
                 return False
-            pool = result["tiles"]
             raise NotImplementedError()
 
         except Exception as e:
