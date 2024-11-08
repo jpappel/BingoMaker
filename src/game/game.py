@@ -105,7 +105,7 @@ class Board:
         free_square: bool = True,
         seed: int = 0,
     ):
-        self.board = []
+        self.board: list[list[Tile]] = []
         self.size = size
         self.seed = seed
         self.id = ""
