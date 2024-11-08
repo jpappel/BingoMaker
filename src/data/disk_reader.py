@@ -4,14 +4,15 @@ import uuid
 from pathlib import Path
 
 from game.game import Tile, TilePool
-from src.data.persistence import DBResult, TilePoolDB, tile_to_dict, dict_to_tile
+from data.persistence import DBResult, TilePoolDB, dict_to_tile, tile_to_dict
 
 
 def read_text(path: str) -> TilePool:
     tiles = []
     with open(path) as f:
         for line in f:
-            tiles.append(Tile(line.strip()))
+            text = line.strip()
+            tiles.append(Tile(text, frozenset([text])))
 
     return TilePool(frozenset(tiles))
 
