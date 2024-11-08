@@ -7,5 +7,5 @@ git clone https://github.com/cs399f24/BingoMaker
 cd BingoMaker
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.cargo/env
+source $HOME/.local/bin/env
 make deploy
