@@ -192,10 +192,21 @@ components:
           description: A list of tiles (each tile can be a text label or image URL)
           items:
             $ref: '#/components/schemas/Tile'
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp of when the tile pool was created
+        owner:
+          type: string
+          description: The user who owns the tile pool
+        free_tile:
+          $ref: '#/components/schemas/Tile'
       required:
         - id
         - name
         - tiles
+        - created_at
+        - owner
 
     NewTilePool:
       type: object

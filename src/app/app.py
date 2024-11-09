@@ -6,6 +6,8 @@ from data.file import FileTilePoolDB
 from data.persistence import TilePoolDB, tile_to_dict
 from game.game import Board
 
+from . import tilepools
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -13,8 +15,10 @@ def create_app() -> Flask:
     app.config["DB"] = FileTilePoolDB("tiles")
 
     @app.route("/")
-    def hello_world():
+    def index():
         return render_template("index.html")
+
+    app.register_blueprint(tilepools.bp)
 
     @app.route("/bingocard/<tilepoolId>")
     def generate_card(tilepoolId: str):
