@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TextIO
 
-from data.persistence import DBResult, TilePoolDB, dict_to_tile, tile_to_dict
+from data.persistence import DBResult, SortMethod, TilePoolDB, dict_to_tile, tile_to_dict
 from game.game import Tile, TilePool
 
 
@@ -55,6 +55,9 @@ class FileTilePoolDB(TilePoolDB):
             "created_at": unparsed["CreatedAt"],
             "tiles": pool,
         }
+
+    def _get_count(self) -> int:
+        return sum(1 for _ in self.root.rglob("*.json") if _.is_file())
 
     def insert_tile_pool(self, name: str, owner: str, pool: TilePool) -> str | None:
         dir_ = self.root / owner
@@ -143,10 +146,19 @@ class FileTilePoolDB(TilePoolDB):
             print(e)
         return False
 
-    def get_tile_pools(self, quantity: int | None = None) -> list[DBResult] | None:
-        if quantity is not None and quantity < 1:
-            print(f"Invalid quantity: {quantity}")
+    def get_tile_pools(
+        self,
+        size: int | None = None,
+        page: int | None = None,
+        sort: SortMethod = SortMethod.DEFAULT,
+        sort_asc: bool = True,
+    ) -> list[DBResult] | None:
+        if size is not None and size < 1:
+            print(f"Invalid quantity: {size}")
             return
+
+        count = self._get_count()
+        start, end = self.paginate(count, size, page)
 
         try:
             results = []
@@ -154,7 +166,7 @@ class FileTilePoolDB(TilePoolDB):
                 with open(filepath) as file:
                     results.append(self._parse(file, tile_pool_id))
 
-            return results
+            return self.sort(results, sort, sort_asc)[start:end]
         except Exception as e:
             print("Failed to retrieve tile pools:", str(e))
             return

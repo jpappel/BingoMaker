@@ -249,13 +249,16 @@ components:
     TilePoolUpdate:
       type: object
       properties:
-        tiles:
+        removals:
           type: array
-          description: A list of tiles (text or image URLs) to add or remove from the pool
+          description: Content of tiles that should be removed
+          items:
+            type: string
+        insertions:
+          type: array
+          description: A list of tiles to add to a pool
           items:
             $ref: '#/components/schemas/Tile'
-      required:
-        - tiles
     
     Tile:
       type: object

@@ -1,4 +1,6 @@
 import abc
+from collections.abc import Iterable
+from enum import Enum
 from typing import TypedDict
 
 from game.game import Tile, TilePool
@@ -12,30 +14,85 @@ class DBResult(TypedDict):
     created_at: str
 
 
+class TileType(Enum):
+    TEXT = "text"
+    IMAGE = "image"
+
+
+class SortMethod(Enum):
+    AGE = "age"
+    NAME = "name"
+    OWNER = "owner"
+    DEFAULT = None
+
+
 class TileDict(TypedDict):
-    Content: str
-    Type: str
-    Tags: list[str]
+    content: str
+    type: str
+    tags: list[str]
 
 
 def tile_to_dict(tile: Tile) -> TileDict:
+    """Concert a Tile object to a Tile dict"""
     return {
-        "Content": tile.text if tile.image_url is None else tile.image_url,
-        "Type": "text" if tile.image_url is None else "image",
-        "Tags": list(tile.tags),
+        "content": tile.text if tile.image_url is None else tile.image_url,
+        "type": TileType.TEXT.value if tile.image_url is None else TileType.IMAGE.value,
+        "tags": list(tile.tags),
     }
 
 
-def dict_to_tile(item: dict[str, str | list[str]]) -> Tile:
-    if not isinstance(item["Content"], str):
-        raise Exception()
-    text = item["Content"]
-    tags = frozenset(item["Tags"])
-    image_url = item["Content"] if item["Type"] == "image" else None
+def dict_to_tile(item: TileDict) -> Tile:
+    """Convert a Tile dict to a Tile object
+
+    Raises:
+        TypeError: incorrect type in dictionary
+        KeyError: unable to parse item into Tile due to missing key
+    """
+    if not isinstance(item["content"], str):
+        raise TypeError()
+    type_ = TileType(item["type"])
+    text = item["content"]
+    tags = frozenset(item["tags"])
+    image_url = item["content"] if type_ == TileType.IMAGE else None
     return Tile(text, tags, image_url)
+
 
 class TilePoolDB(abc.ABC):
     """Abstract class of that can create, modify, delete TilePools from storage"""
+
+    def paginate(self, count: int, size: int | None, page: int | None) -> tuple[int, int]:
+        """Produce start and end indicies given a count, pagesize, and page number"""
+        match page, size:
+            case (None, None) | (_, None):
+                start = 0
+                end = count
+            case (None, _):
+                start = 0
+                end = size
+            case (_, _):
+                start = (page - 1) * size
+                end = start + min(count - start, size)
+
+        return start, end
+
+    def sort(self, data: Iterable[DBResult], sort: SortMethod, sort_asc: bool) -> list[DBResult]:
+        """Sort DBResults by using a sort method and sort order"""
+        # PERF: switching does not need to be done if enum values values match the dict keys
+        match sort:
+            case SortMethod.OWNER:
+                lst = sorted(data, key=lambda dbresult: dbresult["owner"], reverse=not sort_asc)
+            case SortMethod.NAME:
+                lst = sorted(data, key=lambda dbresult: dbresult["name"], reverse=not sort_asc)
+            case SortMethod.AGE:
+                lst = sorted(
+                    data,
+                    key=lambda dbresult: dbresult["created_at"],
+                    reverse=not sort_asc,
+                )
+            case _:
+                lst = list(data)
+
+        return lst
 
     @abc.abstractmethod
     def insert_tile_pool(self, name: str, owner: str, pool: TilePool) -> str | None:
@@ -59,7 +116,13 @@ class TilePoolDB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_tile_pools(self, quantity: int | None = None) -> list[DBResult] | None:
+    def get_tile_pools(
+        self,
+        size: int | None = None,
+        page: int | None = None,
+        sort: SortMethod = SortMethod.DEFAULT,
+        sort_asc: bool = True,
+    ) -> list[DBResult] | None:
         pass
 
     @abc.abstractmethod

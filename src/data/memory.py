@@ -2,7 +2,7 @@ import datetime
 from collections.abc import Iterable
 from uuid import uuid4
 
-from data.persistence import DBResult, TilePoolDB
+from data.persistence import DBResult, SortMethod, TilePoolDB
 from game.game import Tile, TilePool
 
 
@@ -67,14 +67,22 @@ class MemoryTilePoolDB(TilePoolDB):
             pass
         return False
 
-    def get_tile_pools(self, quantity: int | None = None) -> list[DBResult] | None:
-        if (quantity is not None and quantity < 1) or len(self.data) == 0:
+    def get_tile_pools(
+        self,
+        size: int | None = None,
+        page: int | None = None,
+        sort: SortMethod = SortMethod.DEFAULT,
+        sort_asc: bool = True,
+    ) -> list[DBResult] | None:
+        count = len(self.data)
+        # TODO: make sure page number is not too large
+        if (size is not None and size < 1) or count == 0 or (page is not None and page < 1):
             return
 
-        if quantity is None:
-            return list(self._iter_data())
+        start, end = self.paginate(count, size, page)
+        lst = self.sort(self._iter_data(), sort, sort_asc)
 
-        return list(self._iter_data())[:quantity]
+        return lst[start:end]
 
     def get_tile_pool(self, tile_pool_id: str) -> DBResult | None:
         try:
