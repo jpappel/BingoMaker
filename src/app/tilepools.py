@@ -92,15 +92,18 @@ def update_tilepool(tilepoolId):
     if removals is None and insertions is None:
         return "Missing update payload", 400
 
-    if not isinstance(removals, list):
+    if removals is not None and not isinstance(removals, list):
         return "removals is not a list", 400
-    if not isinstance(insertions, list):
+    if insertions is not None and not isinstance(insertions, list):
         return "insertions is not a list", 400
 
-    try:
-        parsed_insertions = [dict_to_tile(tile) for tile in insertions]
-    except (TypeError, KeyError):
-        return "Malformed tile insertions", 400
+    if insertions:
+        try:
+            parsed_insertions = [dict_to_tile(tile) for tile in insertions]
+        except (TypeError, KeyError):
+            return "Malformed tile insertions", 400
+    else:
+        parsed_insertions = None
 
     if not db.update_tiles(tilepoolId, removals, parsed_insertions):
         return "Tile pool not found", 404

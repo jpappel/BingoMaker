@@ -6,7 +6,7 @@ from flask.testing import FlaskClient
 
 from src.app import create_app
 from src.data import MemoryTilePoolDB
-from src.data.persistence import DBResult, TilePoolDB, tile_to_dict
+from src.data.persistence import DBResult, TilePoolDB, dict_to_tile, tile_to_dict
 from src.game.game import Tile, TilePool
 
 EXAMPLES: dict[str, DBResult] = {
@@ -26,7 +26,33 @@ EXAMPLES: dict[str, DBResult] = {
         "created_at": "2024-11-09T01:02:03",
         "id": "no_free",
     },
+    "update_me": {
+        "owner": "absent owner",
+        "tiles": TilePool(frozenset(Tile(f"{j}", frozenset([f"{j}"])) for j in range(25))),
+        "name": "Will be updated :)",
+        "created_at": "2024-11-09T01:02:03",
+        "id": "update_me",
+    },
+    "delete_me": {
+        "owner": "absent owner",
+        "tiles": TilePool(frozenset(Tile(f"{j}", frozenset([f"{j}"])) for j in range(25))),
+        "name": "Will be deleted :(",
+        "created_at": "2024-11-09T01:02:03",
+        "id": "delete_me",
+    },
 }
+
+
+def dummy_api_tile(type: str = "text", content: str = "0"):
+    return {"type": type, "content": content, "tags": [content]}
+
+
+def dummy_api_tiles(count: int):
+    lst = []
+    for i in range(count):
+        type_ = "text" if not i % 2 else "image"
+        lst.append(dummy_api_tile(type_, str(i)))
+    return lst
 
 
 # NOTE: parametrize this database fixture to perform integration tests
@@ -117,7 +143,7 @@ class TestDeletePool:
         response = client.delete("/tilepools/does-not-exist")
         assert response.status_code == 404
 
-    @pytest.mark.parametrize("example", [example for example in EXAMPLES.values()])
+    @pytest.mark.parametrize("example", [EXAMPLES["delete_me"]])
     def test_delete_tilepool(self, client: FlaskClient, example: DBResult):
         response = client.delete(f"/tilepools/{example['id']}")
         assert response.status_code == 204
@@ -141,16 +167,7 @@ class TestCreatePool:
         # missing name
         response = client.post(
             "/tilepools",
-            json={
-                "tiles": [
-                    {"type": "text", "content": "1", "tags": ["1"]},
-                    {"type": "image", "content": "2", "tags": ["2"]},
-                    {"type": "text", "content": "3", "tags": ["3"]},
-                    {"type": "image", "content": "4", "tags": ["4"]},
-                    {"type": "text", "content": "5", "tags": ["5"]},
-                    {"type": "image", "content": "6", "tags": ["6"]},
-                ]
-            },
+            json={"tiles": dummy_api_tiles(6)},
         )
         assert response.status_code == 400
         # incorrect content type
@@ -171,7 +188,7 @@ class TestCreatePool:
         assert response.status_code == 400
 
     def test_create_tilepool_nofree(self, client: FlaskClient):
-        tiles = [{"type": "text", "content": f"{i}", "tags": [f"{i}"]} for i in range(10)]
+        tiles = dummy_api_tiles(10)
         response = client.post(
             "/tilepools",
             json={
@@ -214,10 +231,69 @@ class TestCreatePool:
 
 class TestGetPools:
     def test_get_all_tilepools(self, client: FlaskClient):
-        pass
+        response = client.get("/tilepools")
+        assert response.status_code == 200
+        assert (body := response.json)
+
+        assert len(body) == len(EXAMPLES)
+        for pool in body:
+            assert (id_ := pool["id"]) in EXAMPLES
+            expected = EXAMPLES[id_]
+            assert pool["owner"] == expected["owner"]
+            assert pool["created_at"] == expected["created_at"]
+            assert pool["name"] == expected["name"]
+            assert all(dict_to_tile(tile) in expected["tiles"] for tile in pool["tiles"])
 
     def test_get_paginated_tilepools(self, client: FlaskClient):
         pass
 
     def test_get_sorted_tilepools(self, client: FlaskClient):
         pass
+
+
+class TestUpdatePools:
+    def test_update_bad_request(self, client: FlaskClient):
+        # no body
+        response = client.patch("/tilepools/basic")
+        assert response.status_code == 415
+
+        # body but missing relavent fields
+        response = client.patch("/tilepools/basic", json={"some-useless-key": 1})
+        assert response.status_code == 400
+
+        # removals and insertions are not lists
+        response = client.patch(
+            "/tilepools/basic",
+            json={"removals": ["valid", "request"], "insertions": "an invalid input"},
+        )
+        assert response.status_code == 400
+        response = client.patch(
+            "/tilepools/basic",
+            json={"removals": "an invalid input", "insertions": dummy_api_tiles(10)},
+        )
+        assert response.status_code == 400
+
+        # bad tile format
+        response = client.patch(
+            "/tilepools/basic",
+            json={"insertions": {"type": "bad type", "content": "abc", "tags": ["0"]}},
+        )
+        assert response.status_code == 400
+
+    def test_update_missing_pool(self, client: FlaskClient):
+        response = client.patch(
+            "/tilepools/does-not-exist", json={"removals": ["these", "won't", "be", "removed"]}
+        )
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize("example", [EXAMPLES["update_me"]])
+    def test_update_pool(self, client: FlaskClient, example: DBResult):
+        response = client.patch(
+            f"/tilepools/{example['id']}", json={"removals": [f"{i}" for i in range(25)]}
+        )
+        assert response.status_code == 200
+        assert (body := response.json)
+        assert body["owner"] == example["owner"]
+        assert body["name"] == example["name"]
+        assert body["created_at"] == example["created_at"]
+        assert len(body["tiles"]) == len(example["tiles"])
