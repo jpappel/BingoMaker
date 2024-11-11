@@ -75,7 +75,6 @@ class MemoryTilePoolDB(TilePoolDB):
         sort_asc: bool = True,
     ) -> list[DBResult] | None:
         count = len(self.data)
-        # TODO: make sure page number is not too large
         if (size is not None and size < 1) or count == 0 or (page is not None and page < 1):
             return
 

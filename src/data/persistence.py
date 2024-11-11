@@ -20,7 +20,7 @@ class TileType(Enum):
 
 
 class SortMethod(Enum):
-    AGE = "age"
+    AGE = "created_at"
     NAME = "name"
     OWNER = "owner"
     DEFAULT = None
@@ -77,22 +77,10 @@ class TilePoolDB(abc.ABC):
 
     def sort(self, data: Iterable[DBResult], sort: SortMethod, sort_asc: bool) -> list[DBResult]:
         """Sort DBResults by using a sort method and sort order"""
-        # PERF: switching does not need to be done if enum values values match the dict keys
-        match sort:
-            case SortMethod.OWNER:
-                lst = sorted(data, key=lambda dbresult: dbresult["owner"], reverse=not sort_asc)
-            case SortMethod.NAME:
-                lst = sorted(data, key=lambda dbresult: dbresult["name"], reverse=not sort_asc)
-            case SortMethod.AGE:
-                lst = sorted(
-                    data,
-                    key=lambda dbresult: dbresult["created_at"],
-                    reverse=not sort_asc,
-                )
-            case _:
-                lst = list(data)
+        if sort != SortMethod.DEFAULT:
+            return sorted(data, key=lambda dbresult: dbresult[sort.value], reverse=not sort_asc)
 
-        return lst
+        return list(data)
 
     @abc.abstractmethod
     def insert_tile_pool(self, name: str, owner: str, pool: TilePool) -> str | None:

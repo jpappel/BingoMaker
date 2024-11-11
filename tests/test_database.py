@@ -71,7 +71,6 @@ class TestMongoDBDriver:
         assert db.delete_tile_pool(pool_id)
         assert db.get_tile_pool(pool_id) is None
 
-    # FIXME: need to test sorting and pagination
     def test_get_quantity_tile_pools(self, many_pools: tuple[TilePoolDB, list[str]]):
         db, pool_ids = many_pools
         assert db.get_tile_pools(0) is None

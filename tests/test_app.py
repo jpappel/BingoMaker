@@ -8,7 +8,14 @@ from werkzeug.test import TestResponse
 
 from src.app import create_app
 from src.data import MemoryTilePoolDB
-from src.data.persistence import DBResult, TileDict, TilePoolDB, dict_to_tile, tile_to_dict
+from src.data.persistence import (
+    DBResult,
+    SortMethod,
+    TileDict,
+    TilePoolDB,
+    dict_to_tile,
+    tile_to_dict,
+)
 from src.game.game import Tile, TilePool
 
 EXAMPLES: dict[str, DBResult] = {
@@ -51,7 +58,7 @@ EXAMPLES: dict[str, DBResult] = {
     },
 }
 
-SORT_METHODS = [(sort, sort_asc) for sort in ("age", "name", "owner") for sort_asc in (True, False)]
+SORT_METHODS = [(sort.value, sort_asc) for sort in SortMethod for sort_asc in (True, False)]
 
 
 def dummy_api_tile(type: str = "text", content: str = "0"):
@@ -288,18 +295,21 @@ class TestGetPools:
             assert len(body) == 2
 
     @pytest.mark.parametrize("sort,sort_asc", SORT_METHODS)
-    def test_get_sorted_tilepools(self, client: FlaskClient, sort: str, sort_asc: bool):
-        response = client.get("/tilepools", query_string={"sort": sort, "sortAsc": sort_asc})
+    def test_get_sorted_tilepools(self, client: FlaskClient, sort: str | None, sort_asc: bool):
+        query = {} if sort is None else {"sort": sort, "sortAsc": sort_asc}
+        response = client.get("/tilepools", query_string=query)
         body = self._validate_response(response)
 
         ids = [pool["id"] for pool in body]
-        sort_method = sort if sort != "age" else "created_at"
-        expected_ids = [
-            pool["id"]
-            for pool in sorted(
-                EXAMPLES.values(), key=lambda tile: tile[sort_method], reverse=not sort_asc
-            )
-        ]
+        if sort:
+            expected_ids = [
+                pool["id"]
+                for pool in sorted(
+                    EXAMPLES.values(), key=lambda tile: tile[sort], reverse=not sort_asc
+                )
+            ]
+        else:
+            expected_ids = [pool["id"] for pool in EXAMPLES.values()]
 
         assert ids == expected_ids
 
