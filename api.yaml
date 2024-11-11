@@ -38,7 +38,7 @@ paths:
             default: default
         - name: sortAsc
           in: query
-          requried: false
+          required: false
           description: Sort pools in ascending order
           schema:
             type: boolean
@@ -176,12 +176,12 @@ paths:
             default: []
             items:
               type: string
-          - name: seed
-            in: query
-            required: false
-            description: The seed to use when generating a bingo card
-            schema:
-              type: integer
+        - name: seed
+          in: query
+          required: false
+          description: The seed to use when generating a bingo card
+          schema:
+            type: integer
       responses:
         '200':
           description: A JSON object representing the generated bingo card
