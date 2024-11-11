@@ -128,7 +128,6 @@ class TilePoolDB:
                 {"_id": ObjectId(tile_pool_id)},
                 operation,
             )
-            print(result)
             return result is not None
         except Exception as e:
             logger.error(f"Failed to update tile pool {tile_pool_id}: {str(e)}")

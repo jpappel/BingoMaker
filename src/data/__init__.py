@@ -1,4 +1,5 @@
-from .disk_reader import read_text
+from .file import FileTilePoolDB, read_text
+from .memory import MemoryTilePoolDB
 from .serialization import BoardEncoder
 
-__all__ = ["BoardEncoder", "read_text"]
+__all__ = ["BoardEncoder", "read_text", "FileTilePoolDB", "MemoryTilePoolDB"]
