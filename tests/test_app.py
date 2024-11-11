@@ -1,12 +1,14 @@
+from copy import deepcopy
 from datetime import datetime
 
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
 
 from src.app import create_app
 from src.data import MemoryTilePoolDB
-from src.data.persistence import DBResult, TilePoolDB, dict_to_tile, tile_to_dict
+from src.data.persistence import DBResult, TileDict, TilePoolDB, dict_to_tile, tile_to_dict
 from src.game.game import Tile, TilePool
 
 EXAMPLES: dict[str, DBResult] = {
@@ -30,17 +32,26 @@ EXAMPLES: dict[str, DBResult] = {
         "owner": "absent owner",
         "tiles": TilePool(frozenset(Tile(f"{j}", frozenset([f"{j}"])) for j in range(25))),
         "name": "Will be updated :)",
-        "created_at": "2024-11-09T01:02:03",
+        "created_at": "2024-11-10T01:02:03",
         "id": "update_me",
     },
     "delete_me": {
         "owner": "absent owner",
         "tiles": TilePool(frozenset(Tile(f"{j}", frozenset([f"{j}"])) for j in range(25))),
         "name": "Will be deleted :(",
-        "created_at": "2024-11-09T01:02:03",
+        "created_at": "2024-11-11T01:02:03",
         "id": "delete_me",
     },
+    "newest": {
+        "owner": "v new",
+        "tiles": TilePool(frozenset(Tile(f"{j}", frozenset([f"{j}"])) for j in range(25))),
+        "name": "latest and greatest!",
+        "created_at": "2024-11-12T01:02:03",
+        "id": "newest",
+    },
 }
+
+SORT_METHODS = [(sort, sort_asc) for sort in ("age", "name", "owner") for sort_asc in (True, False)]
 
 
 def dummy_api_tile(type: str = "text", content: str = "0"):
@@ -55,6 +66,11 @@ def dummy_api_tiles(count: int):
     return lst
 
 
+def hash_tiledict(tile: TileDict) -> int:
+    tags = tuple(tile["tags"])
+    return hash((tile["type"], tile["content"], tags))
+
+
 # NOTE: parametrize this database fixture to perform integration tests
 @pytest.fixture
 def db():
@@ -63,7 +79,7 @@ def db():
 
 @pytest.fixture
 def db_data(db: MemoryTilePoolDB):
-    db.data = EXAMPLES
+    db.data = deepcopy(EXAMPLES)
     return db
 
 
@@ -128,14 +144,9 @@ class TestGetPool:
             assert "free_tile" not in body and example["tiles"].free is None
         assert len(body["tiles"]) == len(example["tiles"])
 
-        for recieved, expected in zip(
-            body["tiles"],
-            (tile_to_dict(tile) for tile in example["tiles"].tiles),
-            strict=True,
-        ):
-            assert expected["content"] == recieved["content"]
-            assert expected["type"] == recieved["type"]
-            assert set(expected["tags"]) == set(recieved["tags"])
+        recv_set = set(hash_tiledict(tile) for tile in body["tiles"])
+        example_set = set(hash_tiledict(tile_to_dict(tile)) for tile in example["tiles"].tiles)
+        assert recv_set == example_set
 
 
 class TestDeletePool:
@@ -230,10 +241,17 @@ class TestCreatePool:
 
 
 class TestGetPools:
+    def _validate_response(self, response: TestResponse) -> list:
+        assert response.status_code == 200
+        assert (body := response.json) is not None
+        assert isinstance(body, list)
+
+        return body
+
     def test_get_all_tilepools(self, client: FlaskClient):
         response = client.get("/tilepools")
-        assert response.status_code == 200
-        assert (body := response.json)
+
+        body = self._validate_response(response)
 
         assert len(body) == len(EXAMPLES)
         for pool in body:
@@ -245,10 +263,45 @@ class TestGetPools:
             assert all(dict_to_tile(tile) in expected["tiles"] for tile in pool["tiles"])
 
     def test_get_paginated_tilepools(self, client: FlaskClient):
-        pass
+        total = len(EXAMPLES)
 
-    def test_get_sorted_tilepools(self, client: FlaskClient):
-        pass
+        response = client.get("/tilepools", query_string={"page": 1, "size": 1})
+        body = self._validate_response(response)
+        assert len(body) == 1
+
+        response = client.get("/tilepools", query_string={"page": 200, "size": 1})
+        body = self._validate_response(response)
+        assert len(body) == 0
+
+        response = client.get("/tilepools", query_string={"page": 1, "size": total // 2})
+        body = self._validate_response(response)
+        assert len(body) == total // 2
+
+        # this ensures the content must be on 3 pages for total > 4
+        count = total // 2 if total % 2 else total // 2 - 1
+        response = client.get("/tilepools", query_string={"page": 3, "size": count})
+        body = self._validate_response(response)
+        print(total)
+        if total % 2:
+            assert len(body) == 1
+        else:
+            assert len(body) == 2
+
+    @pytest.mark.parametrize("sort,sort_asc", SORT_METHODS)
+    def test_get_sorted_tilepools(self, client: FlaskClient, sort: str, sort_asc: bool):
+        response = client.get("/tilepools", query_string={"sort": sort, "sortAsc": sort_asc})
+        body = self._validate_response(response)
+
+        ids = [pool["id"] for pool in body]
+        sort_method = sort if sort != "age" else "created_at"
+        expected_ids = [
+            pool["id"]
+            for pool in sorted(
+                EXAMPLES.values(), key=lambda tile: tile[sort_method], reverse=not sort_asc
+            )
+        ]
+
+        assert ids == expected_ids
 
 
 class TestUpdatePools:
@@ -286,14 +339,42 @@ class TestUpdatePools:
         )
         assert response.status_code == 404
 
-    @pytest.mark.parametrize("example", [EXAMPLES["update_me"]])
-    def test_update_pool(self, client: FlaskClient, example: DBResult):
+    def test_update_pool(self, client: FlaskClient):
+        # remove tiles
+        example = EXAMPLES["update_me"]
         response = client.patch(
-            f"/tilepools/{example['id']}", json={"removals": [f"{i}" for i in range(25)]}
+            "/tilepools/update_me", json={"removals": [f"{i}" for i in range(25)]}
         )
         assert response.status_code == 200
         assert (body := response.json)
         assert body["owner"] == example["owner"]
         assert body["name"] == example["name"]
         assert body["created_at"] == example["created_at"]
-        assert len(body["tiles"]) == len(example["tiles"])
+        assert len(body["tiles"]) == 0
+
+        # insert tiles
+        response = client.patch(
+            "/tilepools/update_me",
+            json={"insertions": [dummy_api_tile(content=f"{i}") for i in range(25, 51)]},
+        )
+        assert response.status_code == 200
+        assert (body := response.json)
+        assert body["owner"] == example["owner"]
+        assert body["name"] == example["name"]
+        assert body["created_at"] == example["created_at"]
+        assert len(body["tiles"]) == 26
+
+        # compound
+        response = client.patch(
+            "/tilepools/update_me",
+            json={
+                "removals": [f"{i}" for i in range(25, 51)],
+                "insertions": [dummy_api_tile(content=f"{i}") for i in range(25)],
+            },
+        )
+        assert response.status_code == 200
+        assert (body := response.json)
+        assert body["owner"] == example["owner"]
+        assert body["name"] == example["name"]
+        assert body["created_at"] == example["created_at"]
+        assert len(body["tiles"]) == 25

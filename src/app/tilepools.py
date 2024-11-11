@@ -12,7 +12,9 @@ def get_tilepools():
     size = request.args.get("size", type=int)
     page = request.args.get("page", type=int)
     sort = request.args.get("sort", SortMethod.DEFAULT, type=SortMethod)
-    sort_asc = request.args.get("sortAsc", True, type=bool)
+    sort_asc = request.args.get(
+        "sortAsc", True, type=lambda x: x.lower() in ("true", "1", "t", "yes")
+    )
     results = db.get_tile_pools(size, page, sort, sort_asc)
     if results is None:
         return [], 200
