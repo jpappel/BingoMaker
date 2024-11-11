@@ -14,7 +14,7 @@ def get_dynamodb_resource(region=None, endpoint_url=None):
         return boto3.resource('dynamodb') 
 
 def create_tile_pool_table(dynamodb, table_name):
-    """Create a DynamoDB table with the specified schema."""
+    """Create a DynamoDB table with the specified schema for local deployment."""
     try:
         table = dynamodb.create_table(
             TableName=table_name,
@@ -25,14 +25,9 @@ def create_tile_pool_table(dynamodb, table_name):
             AttributeDefinitions=[
                 {'AttributeName': 'Owner', 'AttributeType': 'S'},
                 {'AttributeName': 'TilePoolId', 'AttributeType': 'S'}
-            ],
-            ProvisionedThroughput={
-                'ReadCapacityUnits': 5,
-                'WriteCapacityUnits': 5
-            }
+            ]
+            # No ProvisionedThroughput for local deployment
         )
-        # Wait until the table exists
-        table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
         print(f"Table {table_name} created successfully.")
         return table
     except ClientError as e:
@@ -87,7 +82,8 @@ def insert_tile_in_pool(dynamodb, table_name, tile_pool_id, tile, owner):
         print(f"Tile {tile} added to pool {tile_pool_id} for owner {owner}.")
         return response
     except ClientError as e:
-        print(f"Failed to insert tile {tile} in pool {tile_pool_id}: {e.response['Error']['Message']}")
+        print(f"Failed to insert tile {tile} in pool {tile_pool_id}: \
+              {e.response['Error']['Message']}")
         return None
 
 def remove_tile_from_pool(dynamodb, table_name, tile_pool_id, tile, owner):
@@ -103,7 +99,8 @@ def remove_tile_from_pool(dynamodb, table_name, tile_pool_id, tile, owner):
         print(f"Tile {tile} removed from pool {tile_pool_id} for owner {owner}.")
         return response
     except ClientError as e:
-        print(f"Failed to remove tile {tile} from pool {tile_pool_id}: {e.response['Error']['Message']}")
+        print(f"Failed to remove tile {tile} from pool {tile_pool_id}: \
+              {e.response['Error']['Message']}")
         return None
 
 def update_free_tile(dynamodb, table_name, tile_pool_id, free_tile, owner):
@@ -119,9 +116,12 @@ def update_free_tile(dynamodb, table_name, tile_pool_id, free_tile, owner):
         print(f"Free tile updated to {free_tile} in pool {tile_pool_id} for owner {owner}.")
         return response
     except ClientError as e:
-        print(f"Failed to update free tile in pool {tile_pool_id}: {e.response['Error']['Message']}")
+        print(f"Failed to update free tile in pool {tile_pool_id}: \
+              {e.response['Error']['Message']}")
         return None
 
 if __name__ == '__main__':
     # Customize these variables
     dynamodb = get_dynamodb_resource(endpoint_url='http://localhost:8000')
+
+    tile_pool = create_tile_pool_table(dynamodb, 'TilePools')
