@@ -75,7 +75,7 @@ class LocalImageManager(ImageManager):
                 return id_
             raise FileExistsError(f"{filename} already exists but isn't a regular file")
 
-        with open(filepath, "w") as dest:
+        with open(filepath, "wb") as dest:
             shutil.copyfileobj(data, dest)
 
         return id_
