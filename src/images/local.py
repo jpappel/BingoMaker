@@ -107,5 +107,12 @@ class LocalImageManager(ImageManager):
         return False
 
     def prune_images(self) -> int:
-        super().prune_images()
-        raise NotImplementedError()
+        zero_count = Count(0, 0)
+        delete_ids = [
+            image_id for image_id in self.references if self.references[image_id] == zero_count
+        ]
+        for image_id in delete_ids:
+            if not self.delete_image(image_id):
+                raise Exception(f"Failed to delete image: {image_id}")
+
+        return len(delete_ids)
