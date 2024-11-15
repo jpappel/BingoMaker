@@ -1,5 +1,7 @@
+import boto3
 import mongomock
 import pytest
+from botocore.client import ClientError
 
 from src.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB, mongo
 from src.data.persistence import TilePoolDB
@@ -9,7 +11,7 @@ DB_NAME = "BingoMakerTestDB"
 COLLECTION_NAME = "BingoMakerTestCollection"
 
 
-class TilePoolDBTest(mongo.TilePoolDB):
+class MongoTilePoolDBTest(mongo.MongoTilePoolDB):
     def __init__(self):
         self.client = mongomock.MongoClient()
         self.db = self.client[DB_NAME]
@@ -17,14 +19,40 @@ class TilePoolDBTest(mongo.TilePoolDB):
         self.collection.create_index("Name", unique=True)
 
 
-@pytest.fixture(params=[TilePoolDBTest, FileTilePoolDB, MemoryTilePoolDB, DynamoTilePoolDB])
+class DynamoTilePoolDBTest(DynamoTilePoolDB):
+    def __init__(self):
+        self.client = boto3.client(
+            "dynamodb",
+            region_name="us-east-1",
+            endpoint_url="http://localhost.localstack.cloud:4566",
+            aws_access_key_id="notARealAccessKey",
+            aws_secret_access_key="notARealSecretKey",
+        )
+        self.table_name = "TestBingoMaker"
+
+        try:
+            self.client.delete_table(TableName=self.table_name)
+        except ClientError as e:
+            print(e)
+        finally:
+            self.client.create_table(
+                TableName=self.table_name,
+                KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
+                AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
+                ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
+            )
+
+
+@pytest.fixture(
+    params=[MongoTilePoolDBTest, FileTilePoolDB, MemoryTilePoolDB, DynamoTilePoolDBTest]
+)
 def db(request, tmp_path):
     driver = request.param(tmp_path) if request.param is FileTilePoolDB else request.param()
     return driver
 
 
 @pytest.fixture
-def one_pool(db: TilePoolDBTest):
+def one_pool(db: TilePoolDB):
     free_tile = Tile("Free")
     tiles = frozenset(Tile(f"{i}") for i in range(3))
     pool = TilePool(tiles, free_tile)
@@ -34,7 +62,7 @@ def one_pool(db: TilePoolDBTest):
 
 
 @pytest.fixture
-def many_pools(db: TilePoolDBTest):
+def many_pools(db: TilePoolDB):
     pool_ids: list[str] = []
     for i in range(10):
         free = Tile(f"Free {i}")
@@ -48,7 +76,7 @@ def many_pools(db: TilePoolDBTest):
     return db, pool_ids
 
 
-class TestMongoDBDriver:
+class TestTilePoolDB:
     def test_insert_query(self, db: TilePoolDB):
         free_tile = Tile("Free")
         tiles = frozenset(Tile(f"{i}") for i in range(3))

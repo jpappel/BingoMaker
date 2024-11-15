@@ -36,7 +36,7 @@ class DBResult(TypedDict):
     created_at: str
 
 
-class TilePoolDB:
+class MongoTilePoolDB:
     def __init__(self, uri: str, database_name: str, collection_name: str):
         try:
             self.client = MongoClient(uri)

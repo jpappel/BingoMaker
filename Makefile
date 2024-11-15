@@ -29,6 +29,11 @@ deploy:
 test:
 	@uv run pytest
 
+test-full:
+	@docker compose up -d
+	@uv run pytest
+	@docker compose down
+
 clean:
 	uv run ruff clean
 
