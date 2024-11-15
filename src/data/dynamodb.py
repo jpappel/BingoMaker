@@ -126,7 +126,8 @@ class DynamoTilePoolDB(TilePoolDB):
 
             # Delete each item individually
             for item in items:
-                id_ = item["id"]["S"]
+                item = self._dynamodb_to_dict(item)
+                id_ = item["id"]
                 self.client.delete_item(TableName=self.table_name, Key={"id": {"S": id_}})
                 print(f"Deleted item with id: {id_}")
 
@@ -166,14 +167,8 @@ class DynamoTilePoolDB(TilePoolDB):
             if insertions:
                 old_pool = current_pool["tiles"]
 
-                # TODO: add free tile to insertions
                 new_pool = list(old_pool.tiles) + insertions
                 print(f"New pool: {new_pool}")
-                # new_pool = TilePool(frozenset(insertions))
-                # new_pool_tiles = list(new_pool.tiles)
-                # new_pool_tiles.append(old_pool)
-                # if new_pool.free:
-                #     new_pool_tiles.append(new_pool.free)
 
                 self._update_tiles(tile_pool_id, new_pool)
                 print("Inserted tiles successfully")
@@ -186,10 +181,8 @@ class DynamoTilePoolDB(TilePoolDB):
     def _update_tiles(self, tile_pool_id, new_pool):
         print(f"Updating pool for ID: {tile_pool_id} with new pool data")
 
-        # Convert the frozenset of Tile objects to a list of dictionaries
         new_tiles_list = [tile_to_dict(tile) for tile in new_pool]
 
-        # Use the utility function to convert to DynamoDB format
         new_pool_dynamodb = self._dict_to_dynamodb({"new_pool": new_tiles_list})
 
         try:
@@ -214,22 +207,13 @@ class DynamoTilePoolDB(TilePoolDB):
             print(f"Invalid quantity: {size}")
             return
 
-        if page is None or page < 1:
-            page = 1
-
-        # Calculate the number of items to skip for pagination
-        start_index = (page - 1) * size
-
-        # Initial scan request
         response = self.client.scan(TableName=self.table_name)
         items = [self._dynamodb_to_dict(item) for item in response.get("Items", [])]
 
-        # Sort client-side
-        if sort != SortMethod.DEFAULT:
-            items.sort(key=lambda x: x.get(sort.value), reverse=not sort_asc)
+        sorted_items = self.sort(items, sort, sort_asc)
 
-        # Paginate client-side
-        paginated_items = items[start_index : start_index + size]
+        start_index, end_index = self.paginate(len(sorted_items), size, page)
+        paginated_items = sorted_items[start_index:end_index]
 
         return paginated_items
 
@@ -243,8 +227,7 @@ class DynamoTilePoolDB(TilePoolDB):
             if "Item" in response:
                 item = self._dynamodb_to_dict(response["Item"])
 
-                # Extract values directly using standard Python dictionary access
-                tiles_data = item["tiles"]  # Assuming this is a dictionary with a list under "L"
+                tiles_data = item["tiles"]
                 tiles = frozenset(
                     Tile(
                         text=tile.get("content"),
@@ -254,7 +237,6 @@ class DynamoTilePoolDB(TilePoolDB):
                     for tile in tiles_data
                 )
 
-                # Access the free tile data directly as a standard dictionary
                 free_tile_data = item.get("freeTile", {})
                 img_url = free_tile_data.get("imageUrl", "")
                 if not img_url:
