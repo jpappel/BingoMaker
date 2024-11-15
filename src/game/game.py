@@ -28,6 +28,9 @@ class Tile:
 
         return s
 
+    def __repr__(self):
+        return f"Tile(text={self.text}, image_url={self.image_url}, tags={self.tags})"
+
     def __eq__(self, other):
         # NOTE: because of how the tests import this module,
         #       it is easiest to just check for an exception

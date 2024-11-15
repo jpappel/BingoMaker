@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypedDict
 
-ImageID = tuple[str, str]
+ImageID = str
 
 
 class ImageInfo(TypedDict):
@@ -11,8 +11,14 @@ class ImageInfo(TypedDict):
 
 class Count:
     def __init__(self, confirmed: int = 0, unconfirmed: int = 0):
-        self.confirmed = 0
-        self.unconfirmed = 0
+        self.confirmed = confirmed
+        self.unconfirmed = unconfirmed
+
+    def __str__(self):
+        return f"confirmed: {self.confirmed}, unconfirmed: {self.unconfirmed}"
+
+    def __repr__(self):
+        return f"Count(confirmed={self.confirmed}, unconfirmed={self.unconfirmed})"
 
     def __eq__(self, other) -> bool:
         try:
@@ -90,9 +96,11 @@ class ReferenceCounts(ABC):
 
     def prune(self):
         """Delete counts for images with no counts"""
+        self.read()
         to_be_deleted = [k for k, v in self.counts.items() if v.confirmed < 1 and v.unconfirmed < 1]
         for id_ in to_be_deleted:
             del self._counts[id_]
+        self.write()
 
     @abstractmethod
     def write(self):
