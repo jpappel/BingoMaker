@@ -10,14 +10,20 @@ from .image_manager import Count, ImageID, ImageInfo, ImageManager, ReferenceCou
 class CountEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, Count):
-            return {"confirmed": o.confirmed, "unconfirmed": 0}
+            return {"confirmed": o.confirmed, "unconfirmed": o.unconfirmed}
         return super().default(o)
 
 
 class LocalReferenceCounts(ReferenceCounts):
     def __init__(self, path: str | Path, initial_counts: dict[ImageID, Count] | None = None):
         self._path = path if isinstance(path, Path) else Path(path)
-        self._counts = initial_counts or self.read()
+        if not self._path.exists():
+            self._counts = initial_counts or {}
+            self.write()
+        elif initial_counts:
+            self._counts = initial_counts
+        else:
+            self.read()
 
     def read(self):
         with open(self._path) as f:
@@ -26,24 +32,29 @@ class LocalReferenceCounts(ReferenceCounts):
         if not isinstance(data, dict):
             raise ValueError("JSON data is not an object")
 
+        del self._counts
+        self._counts = {}
         for image_id in data:
             try:
                 assert isinstance(data[image_id]["confirmed"], int)
                 assert isinstance(data[image_id]["unconfirmed"], int)
+                self._counts[image_id] = Count(
+                    data[image_id]["confirmed"], data[image_id]["unconfirmed"]
+                )
             except (KeyError, AssertionError) as e:
                 raise ValueError from e
-
-        self._counts = data
 
     def write(self):
         """Write current counts to local storage"""
         with open(self._path, "w") as f:
-            json.dump(self._counts, f, cls=CountEncoder)
+            if len(self._counts) == 0:
+                f.write("{}")
+            else:
+                json.dump(self._counts, f, cls=CountEncoder)
 
 
 class LocalImageManager(ImageManager):
     def __init__(self, root: str | Path, counter: ReferenceCounts):
-        self.manager_id = "PROBABLY WILL DELETE THIS FIELD"
         self.root = root if isinstance(root, Path) else Path(root)
         self._references = counter
 
@@ -63,22 +74,20 @@ class LocalImageManager(ImageManager):
         hash_ = hashlib.file_digest(data, "sha256").hexdigest()
         data.seek(0)
 
-        id_ = self.manager_id, hash_
-
         filename = hash_ + info["extentsion"]
         filepath = self.root / filename
 
         if filepath.exists():
             if filepath.is_file():
-                count = self.references[id_]
+                count = self.references[hash_]
                 count += Count(1, 0)
-                return id_
+                return hash_
             raise FileExistsError(f"{filename} already exists but isn't a regular file")
 
         with open(filepath, "wb") as dest:
             shutil.copyfileobj(data, dest)
 
-        return id_
+        return hash_
 
     def get_image(self, id: ImageID) -> str:
         path = self._find_file(id)
