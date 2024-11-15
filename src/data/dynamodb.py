@@ -22,10 +22,6 @@ class DynamoTilePoolDB(TilePoolDB):
                 ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
             )
 
-    def _iter_data(self) -> Iterable[DBResult]:
-        print("Called _iter_data()")
-        pass
-    
     def _dict_to_dynamodb(self, attr_dict):
         """Convert a standard dictionary to DynamoDB format."""
         dynamodb_dict = {}
