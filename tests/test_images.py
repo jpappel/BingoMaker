@@ -65,3 +65,29 @@ class TestImageManager:
     def test_bad_delete(self, image_manager: ImageManager):
         with pytest.raises(FileNotFoundError):
             image_manager.delete_image("does not exist :O")
+
+    def test_add_delete(self, image_manager: ImageManager):
+        data = io.BytesIO(b"here is some text")
+        assert (id_ := image_manager.add_image(data, {"extentsion": ".txt", "size": 100}))
+        assert len(image_manager.references) == 1
+        assert image_manager.delete_image(id_)
+
+        with pytest.raises(FileNotFoundError):
+            image_manager.get_image(id_)
+
+    def test_prune(self, image_manager: ImageManager):
+        image_ids = []
+        for i in range(10):
+            image_ids.append(
+                image_manager.add_image(
+                    io.BytesIO(f"{i}".encode()), {"extentsion": ".txt", "size": 1}
+                )
+            )
+
+        assert len(image_manager.references) == 10
+        # FIXME: ref counts should not manually be changed, even in testing
+        #        once decreasing ref counts is implemented this should be removed
+        image_manager.references[image_ids[0]] = Count(0, 0)
+        assert image_manager.prune_images() == 1
+        with pytest.raises(FileNotFoundError):
+            image_manager.get_image(image_ids[0])
