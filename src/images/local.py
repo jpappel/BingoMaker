@@ -63,8 +63,9 @@ class LocalImageManager(ImageManager):
             yield from filenames
 
     def _find_file(self, id_: ImageID) -> Path | None:
-        for path in self.root.glob(f"{id_[1]}.*"):
+        for path in self.root.glob(f"{id_}.*"):
             return path
+        raise FileNotFoundError()
 
     @property
     def references(self) -> ReferenceCounts:
@@ -77,12 +78,14 @@ class LocalImageManager(ImageManager):
         filename = hash_ + info["extentsion"]
         filepath = self.root / filename
 
-        if filepath.exists():
-            if filepath.is_file():
-                count = self.references[hash_]
-                count += Count(1, 0)
-                return hash_
+        if not filepath.exists():
+            self.references[hash_] = Count(0, 0)
+        elif not filepath.is_file():
             raise FileExistsError(f"{filename} already exists but isn't a regular file")
+
+        self.references[hash_] = self.references[hash_] + Count(1, 0)
+        if filepath.exists():
+            return hash_
 
         with open(filepath, "wb") as dest:
             shutil.copyfileobj(data, dest)

@@ -26,6 +26,14 @@ class Count:
         except AttributeError:
             return False
 
+    def __add__(self, other):
+        confirmed = self.confirmed + other.confirmed
+        unconfirmed = self.unconfirmed + other.unconfirmed
+        if confirmed < 0 or unconfirmed < 0:
+            raise ValueError("Count cannot be less than zero")
+
+        return Count(confirmed, unconfirmed)
+
     def __iadd__(self, other):
         original = self.confirmed, self.unconfirmed
         try:
