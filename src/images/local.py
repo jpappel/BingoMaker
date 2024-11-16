@@ -4,7 +4,14 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-from .image_manager import Count, ImageID, ImageInfo, ImageManager, ReferenceCounts
+from .image_manager import (
+    Count,
+    ImageID,
+    ImageInfo,
+    ImageManager,
+    ReferenceCounts,
+    mimetype_to_extension,
+)
 
 
 class CountEncoder(json.JSONEncoder):
@@ -75,7 +82,8 @@ class LocalImageManager(ImageManager):
         hash_ = hashlib.file_digest(data, "sha256").hexdigest()
         data.seek(0)
 
-        filename = hash_ + info["extentsion"]
+        extension = mimetype_to_extension(info["mimetype"])
+        filename = hash_ + extension if extension else hash_
         filepath = self.root / filename
 
         if not filepath.exists():

@@ -54,7 +54,7 @@ class TestRefenceCounts:
 class TestImageManager:
     def test_add_get_image(self, image_manager: ImageManager):
         data = io.BytesIO(b"here is some text")
-        assert (id_ := image_manager.add_image(data, {"extentsion": ".txt", "size": 100}))
+        assert (id_ := image_manager.add_image(data, {"mimetype": "text/plain", "size": 100}))
         assert image_manager.references[id_] == Count(1, 0)
         assert id_ in image_manager.get_image(id_)
 
@@ -68,7 +68,7 @@ class TestImageManager:
 
     def test_add_delete(self, image_manager: ImageManager):
         data = io.BytesIO(b"here is some text")
-        assert (id_ := image_manager.add_image(data, {"extentsion": ".txt", "size": 100}))
+        assert (id_ := image_manager.add_image(data, {"mimetype": "text/plain", "size": 100}))
         assert len(image_manager.references) == 1
         assert image_manager.delete_image(id_)
 
@@ -80,7 +80,7 @@ class TestImageManager:
         for i in range(10):
             image_ids.append(
                 image_manager.add_image(
-                    io.BytesIO(f"{i}".encode()), {"extentsion": ".txt", "size": 1}
+                    io.BytesIO(f"{i}".encode()), {"mimetype": "text/plain", "size": 1}
                 )
             )
 

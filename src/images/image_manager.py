@@ -1,3 +1,4 @@
+import mimetypes
 from abc import ABC, abstractmethod
 from typing import TypedDict
 
@@ -5,8 +6,12 @@ ImageID = str
 
 
 class ImageInfo(TypedDict):
-    extentsion: str
+    mimetype: str
     size: int
+
+
+def mimetype_to_extension(mimetype: str):
+    return mimetypes.guess_extension(mimetype)
 
 
 class Count:
@@ -142,22 +147,25 @@ class ImageManager(ABC):
         """Add an image to be managed"""
         pass
 
-    def confirm_image(self, id: ImageID):
+    def confirm_image(self, id_: ImageID):
         """Confirm an image
 
         Raises:
             KeyError: image with id is not currently tracked
         """
-        self.references[id] = Count(1, -1)
+        self.references[id_].confirmed += 1
+        self.references.write()
+        self.references[id_].unconfirmed -= 1
+        self.references.write()
 
-    def deref_image(self, id: ImageID):
+    def deref_image(self, id_: ImageID):
         """Remove a reference to an image
 
         Raises:
             KeyError: image with id is not currently tracked
         """
-        count = self.references[id]
-        count += Count(-1, 0)
+        self.references[id_].confirmed -= 1
+        self.references.write()
 
     @abstractmethod
     def get_image(self, id: ImageID) -> str:
