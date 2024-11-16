@@ -1,3 +1,4 @@
+import io
 from copy import deepcopy
 from datetime import datetime
 
@@ -17,6 +18,9 @@ from src.data.persistence import (
     tile_to_dict,
 )
 from src.game.game import Tile, TilePool
+from src.images.image_manager import ImageManager
+from src.images.local import LocalImageManager
+from src.images.memory import MemoryReferenceCounts
 
 EXAMPLES: dict[str, DBResult] = {
     "basic": {
@@ -85,15 +89,21 @@ def db():
 
 
 @pytest.fixture
+def image_manager(tmp_path):
+    counter = MemoryReferenceCounts()
+    return LocalImageManager(tmp_path, counter)
+
+
+@pytest.fixture
 def db_data(db: MemoryTilePoolDB):
     db.data = deepcopy(EXAMPLES)
     return db
 
 
 @pytest.fixture
-def app(db_data: TilePoolDB):
+def app(db_data: TilePoolDB, image_manager: ImageManager):
     app = create_app()
-    app.config.update(TESTING=True, DB=db_data)
+    app.config.update(TESTING=True, DB=db_data, IMAGES=image_manager)
     return app
 
 
@@ -388,3 +398,20 @@ class TestUpdatePools:
         assert body["name"] == example["name"]
         assert body["created_at"] == example["created_at"]
         assert len(body["tiles"]) == 25
+
+
+class TestImageUpload:
+    def test_missing_file(self, client: FlaskClient):
+        response = client.post("/images", data={}, content_type="multipart/form-data")
+        assert response.status_code == 400
+
+    def test_no_selected_file(self, client: FlaskClient):
+        data = {"file": (io.BytesIO(b""), "")}
+        response = client.post("/images", data=data, content_type="multipart/form-data")
+        assert response.status_code == 400
+
+    def test_upload(self, client: FlaskClient):
+        data = {"file": (io.BytesIO(b"fake data"), "img.jpg")}
+        response = client.post("/images", data=data, content_type="multipart/form-data")
+        assert response.status_code == 200
+        assert response.data.decode()

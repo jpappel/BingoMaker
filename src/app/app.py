@@ -5,6 +5,7 @@ from flask import Flask, current_app, render_template, request
 from data.file import FileTilePoolDB
 from data.persistence import TilePoolDB, tile_to_dict
 from game.game import Board
+from src.app import images
 
 from . import tilepools
 
@@ -19,6 +20,7 @@ def create_app() -> Flask:
         return render_template("index.html")
 
     app.register_blueprint(tilepools.bp)
+    app.register_blueprint(images.bp)
 
     @app.route("/bingocard/<tilepoolId>")
     def generate_card(tilepoolId: str):
