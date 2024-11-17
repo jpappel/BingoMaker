@@ -4,9 +4,10 @@
 
 ### Setup
 
-Please install the following
+Please ensure you have the following installed
 
 * [uv](https://docs.astral.sh/uv/#getting-started) for project management
+* [docker](https://www.docker.com/)
 
 ```bash
 git clone https://github.com/cs399f24/BingoMaker
@@ -16,7 +17,7 @@ uv sync
 
 ### Testing
 
-To run tests for the project you can either run `uv run pytest` or activate the virtual environment and run `pytest`
+To run tests for the project you can either run `make test`, `uv run pytest` or activate the virtual environment and run `pytest`
 
 ### Linting/Formatting
 
@@ -40,7 +41,7 @@ uv run ruff format
 
 ### Development Server
 
-A local development server can be started via `make deploy`
+A local development server which listens on `0.0.0.0:8080` can be started via `make server`
 
 ## Deployment
 
@@ -48,3 +49,7 @@ A local development server can be started via `make deploy`
 
 The monolith version of the application can be deployed to a Linux VPS such as AWS EC2 by using the `userdata.sh` script provided in `deploy/`.
 The script assumes that the system the software is being installed on has access to curl and uses the `yum` package manager. 
+
+## API
+
+The API is fully documented according to the OpenAPI 3.0.3 spec in `api.yml`.
