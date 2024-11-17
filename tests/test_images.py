@@ -15,7 +15,7 @@ from src.images import (
 from src.images.image_manager import Count, ImageManager
 
 
-class TestS3ImageManager(S3ImageManager):
+class S3ImageManagerTest(S3ImageManager):
     def __init__(self, references: ReferenceCounts):
         self._references = references
         self.bucket_name = "test-image-manager"
@@ -77,7 +77,7 @@ def refcounts(request: pytest.FixtureRequest, tmp_path: Path):
     return driver({})
 
 
-@pytest.fixture(params=[LocalImageManager, TestS3ImageManager])
+@pytest.fixture(params=[LocalImageManager, S3ImageManagerTest])
 def image_manager(request: pytest.FixtureRequest, tmp_path: Path):
     ref_counts = MemoryReferenceCounts({})
     driver = request.param
