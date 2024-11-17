@@ -168,8 +168,12 @@ class ImageManager(ABC):
         self.references.write()
 
     @abstractmethod
-    def get_image(self, id: ImageID) -> str:
-        """Get the public url for an image"""
+    def get_image(self, id_: ImageID) -> str:
+        """Get the public url for an image
+
+        Raises:
+            FileNotFoundException: no file idenitified by id_ exists
+        """
         pass
 
     @abstractmethod

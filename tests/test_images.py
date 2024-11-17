@@ -75,7 +75,7 @@ class TestImageManager:
         with pytest.raises(FileNotFoundError):
             image_manager.get_image(id_)
 
-    def test_prune(self, image_manager: ImageManager):
+    def test_deref_prune(self, image_manager: ImageManager):
         image_ids = []
         for i in range(10):
             image_ids.append(
@@ -85,9 +85,7 @@ class TestImageManager:
             )
 
         assert len(image_manager.references) == 10
-        # FIXME: ref counts should not manually be changed, even in testing
-        #        once decreasing ref counts is implemented this should be removed
-        image_manager.references[image_ids[0]] = Count(0, 0)
+        image_manager.deref_image(image_ids[0])
         assert image_manager.prune_images() == 1
         with pytest.raises(FileNotFoundError):
             image_manager.get_image(image_ids[0])

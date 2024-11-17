@@ -16,7 +16,7 @@ format:
 	uv run ruff format
 
 server:
-	uv run --directory=src __init__.py
+	uv run src/__init__.py
 
 deploy:
 	uv run --no-dev --directory=src gunicorn \
