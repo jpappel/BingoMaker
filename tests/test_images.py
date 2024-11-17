@@ -1,15 +1,71 @@
 import io
 from pathlib import Path
 
+import boto3
 import pytest
+from botocore.exceptions import ClientError
 
 from src.images import (
     LocalImageManager,
     LocalReferenceCounts,
     MemoryReferenceCounts,
     ReferenceCounts,
+    S3ImageManager,
 )
 from src.images.image_manager import Count, ImageManager
+
+
+class TestS3ImageManager(S3ImageManager):
+    def __init__(self, references: ReferenceCounts):
+        self._references = references
+        self.bucket_name = "test-image-manager"
+        self.region = "us-east-1"
+        self.endpoint_hostname = "localhost.localstack.cloud:4566"
+        self.client = boto3.client(
+            "s3",
+            region_name=self.region,
+            endpoint_url=f"http://{self.endpoint_hostname}",
+            aws_access_key_id="aVeryFakeKey",
+            aws_secret_access_key="alsoVeryFake",
+        )
+
+        if self.bucket_exists():
+            self.delete_bucket()
+        self.create_bucket()
+
+    def bucket_exists(self):
+        """Check if the bucket exists."""
+        try:
+            self.client.head_bucket(Bucket=self.bucket_name)
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return False
+            else:
+                print(f"Error checking bucket existence: {e}")
+                raise
+
+    def delete_bucket(self):
+        try:
+            # delete all objects in bucket
+            response = self.client.list_objects_v2(Bucket=self.bucket_name)
+            for obj in response.get("Contents", []):
+                self.client.delete_object(Bucket=self.bucket_name, Key=obj["Key"])
+
+            self.client.delete_bucket(Bucket=self.bucket_name)
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                print(f"Bucket '{self.bucket_name}' does not exist.")
+            else:
+                print(f"Error deleting bucket: {e}")
+                raise
+
+    def create_bucket(self):
+        try:
+            self.client.create_bucket(Bucket=self.bucket_name)
+        except ClientError as e:
+            print(f"Error creating bucket: {e}")
+            raise
 
 
 @pytest.fixture(params=[LocalReferenceCounts, MemoryReferenceCounts])
@@ -21,7 +77,7 @@ def refcounts(request: pytest.FixtureRequest, tmp_path: Path):
     return driver({})
 
 
-@pytest.fixture(params=[LocalImageManager])
+@pytest.fixture(params=[LocalImageManager, TestS3ImageManager])
 def image_manager(request: pytest.FixtureRequest, tmp_path: Path):
     ref_counts = MemoryReferenceCounts({})
     driver = request.param
