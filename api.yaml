@@ -202,7 +202,7 @@ paths:
       summary: Upload an image or gif
       description: Upload an image or gif
       requestBody:
-        required: True
+        required: true
         content:
           multipart/form-data:
             schema:
@@ -221,6 +221,28 @@ paths:
               schema:
                 type: string
                 description: The ID of the image
+          links:
+            GetImage:
+              operationId: getImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `GET /images/{image_id}`
+            ConfirmImage:
+              operationId: confirmImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `POST /images/{image_id}/confirm`
+            UnconfirmImage:
+              operationId: unconfirmImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `POST /images/{image_id}/unconfirm`
         '400':
           description: Image could not be uploaded
       tags:
@@ -228,6 +250,7 @@ paths:
   /images/{image_id}:
     get:
       summary: Get an image
+      operationId: getImage
       description: Get or redirect to an image
       parameters:
         - name: image_id
@@ -252,7 +275,9 @@ paths:
         - Images
   /images/{image_id}/confirm:
     post:
+      summary: Confirm an image
       description: Confirm an image reference
+      operationId: confirmImage
       parameters:
         - name: image_id
           in: path
@@ -272,7 +297,9 @@ paths:
         - Images
   /images/{image_id}/unconfirm:
     post:
-      description: Dereference an Image
+      summary: Unconfirm an Image
+      description: Decrement the refence count of an Image
+      operationId: unconfirmImage
       parameters:
         - name: image_id
           in: path
