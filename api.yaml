@@ -1,14 +1,16 @@
 openapi: 3.0.3
 info:
   title: Bingo  Maker API
-  description: A service for creating and managing tile pools containing text or image tiles and generating bingo cards from those pools.
-  version: 0.2.0
+  description: A service for creating and managing tile pools containing text or image tiles, generating bingo cards from tile pools, and uploading images to be used in a tile pool.
+  version: 0.3.0
 
 tags:
   - name: Tile Pools
     description: Operations related to managing collections (pools) of tiles.
   - name: Bingo Cards
     description: Operations related to generating bingo cards based on tile pools.
+  - name: Images
+    description: Operations related to saving, retrieving, and deleting images.
 
 paths:
   /tilepools:
@@ -195,6 +197,100 @@ paths:
           description: Invalid input or request parameters
       tags:
         - Bingo Cards
+  /images:
+    post:
+      summary: Upload an image or gif
+      description: Upload an image or gif
+      requestBody:
+        required: True
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: Image successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: string
+                description: The ID of the image
+        '400':
+          description: Image could not be uploaded
+      tags:
+        - Images
+  /images/{image_id}:
+    get:
+      summary: Get an image
+      description: Get or redirect to an image
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          description: The image id to retrieve
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Successfully retrieved the image
+          content:
+            application/octet-stream:
+              schema:
+               type: string
+               format: binary
+        '302':
+          description: Redirect to an external URI
+        '404':
+          description: Image not found
+      tags:
+        - Images
+  /images/{image_id}/confirm:
+    post:
+      description: Confirm an image reference
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Defence count incremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageReferenceCounts'
+        '404':
+          description: Image not found
+      tags:
+        - Images
+  /images/{image_id}/unconfirm:
+    post:
+      description: Dereference an Image
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dereference count decremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageReferenceCounts'
+        '404':
+          description: Image not found
+      tags:
+        - Images
+
 
 components:
   schemas:
@@ -299,3 +395,13 @@ components:
         - id
         - grid
         - size
+    ImageReferenceCounts:
+      type: object
+      properties:
+        confirmed:
+          type: integer
+        unconfirmed:
+          type: integer
+      required:
+        - confirmed
+        - unconfirmed

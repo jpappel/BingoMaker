@@ -14,7 +14,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     app.config["DB"] = FileTilePoolDB("tiles")
-    app.config["IMAGES"] = LocalImageManager("images", LocalReferenceCounts("counts"))
+    app.config["IMAGES"] = LocalImageManager("images_store", LocalReferenceCounts("counts"))
 
     @app.route("/")
     def index():
