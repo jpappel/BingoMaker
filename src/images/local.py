@@ -39,7 +39,6 @@ class LocalReferenceCounts(ReferenceCounts):
         if not isinstance(data, dict):
             raise ValueError("JSON data is not an object")
 
-        del self._counts
         self._counts = {}
         for image_id in data:
             try:
@@ -100,10 +99,10 @@ class LocalImageManager(ImageManager):
 
         return hash_
 
-    def get_image(self, id: ImageID) -> str:
-        path = self._find_file(id)
+    def get_image(self, id_: ImageID) -> str:
+        path = self._find_file(id_)
         if path:
-            return path.as_uri()
+            return path.resolve().as_uri()
         raise FileNotFoundError("Could not find file")
 
     def delete_image(self, image_id: ImageID) -> bool:

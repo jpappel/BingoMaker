@@ -1,4 +1,7 @@
-from flask import Blueprint, current_app, request
+import os
+from urllib import parse
+
+from flask import Blueprint, current_app, redirect, request, send_file
 
 from images.image_manager import ImageInfo, ImageManager
 
@@ -19,6 +22,26 @@ def upload():
     id_ = manager.add_image(file, info)
 
     return id_
+
+
+@bp.get("/images/<image_id>")
+def get_image(image_id: str):
+    manager: ImageManager = current_app.config["IMAGES"]
+    try:
+        uri = manager.get_image(image_id)
+    except FileNotFoundError:
+        return "", 404
+
+    parsed = parse.urlparse(uri)
+    if parsed.scheme != "file":
+        return redirect(uri)
+
+    path = parse.unquote(parsed.path)
+
+    if not os.path.isfile(path):
+        return "", 404
+
+    return send_file(path)
 
 
 @bp.post("/images/<image_id>/confirm")

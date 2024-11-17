@@ -5,6 +5,7 @@ from flask import Flask, current_app, render_template, request
 from data.file import FileTilePoolDB
 from data.persistence import TilePoolDB, tile_to_dict
 from game.game import Board
+from images import LocalImageManager, LocalReferenceCounts
 
 from . import image_routes, tilepool_routes
 
@@ -13,6 +14,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     app.config["DB"] = FileTilePoolDB("tiles")
+    app.config["IMAGES"] = LocalImageManager("images", LocalReferenceCounts("counts"))
 
     @app.route("/")
     def index():
