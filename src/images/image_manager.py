@@ -136,6 +136,7 @@ class ReferenceCounts(ABC):
 
 
 class ImageManager(ABC):
+    """A class for the storage and retrieval of images"""
     # TODO: handle unconfirmed images
     @property
     @abstractmethod

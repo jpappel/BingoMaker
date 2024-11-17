@@ -22,6 +22,8 @@ class CountEncoder(json.JSONEncoder):
 
 
 class LocalReferenceCounts(ReferenceCounts):
+    """Implementation of ReferenceCounts which is backed by a JSON file on disk"""
+
     def __init__(self, path: str | Path, initial_counts: dict[ImageID, Count] | None = None):
         self._path = path if isinstance(path, Path) else Path(path)
         if not self._path.exists():
@@ -60,6 +62,8 @@ class LocalReferenceCounts(ReferenceCounts):
 
 
 class LocalImageManager(ImageManager):
+    """An implementation of ImageManager which saves files to block storage"""
+
     def __init__(self, root: str | Path, counter: ReferenceCounts):
         self.root = root if isinstance(root, Path) else Path(root)
         self._references = counter
@@ -114,9 +118,10 @@ class LocalImageManager(ImageManager):
         return False
 
     def prune_images(self) -> int:
-        zero_count = Count(0, 0)
         delete_ids = [
-            image_id for image_id in self.references if self.references[image_id] == zero_count
+            id_
+            for id_ in self.references
+            if self.references[id_].confirmed == 0 and self.references[id_].unconfirmed == 0
         ]
         for image_id in delete_ids:
             if not self.delete_image(image_id):
