@@ -9,8 +9,8 @@ from game.game import Tile, TilePool
 
 
 class DynamoTilePoolDB(TilePoolDB):
-    def __init__(self, table_name: str = "BingoMaker"):
-        self.client = boto3.client("dynamodb", region_name="us-east-1")
+    def __init__(self, table_name: str = "BingoMaker", endpoint_url: str = "https://amazonaws.com"):
+        self.client = boto3.client("dynamodb", region_name="us-east-1", endpoint_url=endpoint_url)
         self.table_name = table_name
 
         with contextlib.suppress(Exception):
