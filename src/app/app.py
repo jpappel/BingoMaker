@@ -2,19 +2,17 @@ import random
 
 from flask import Flask, current_app, render_template, request
 
-from data.file import FileTilePoolDB
 from data.persistence import TilePoolDB, tile_to_dict
 from game.game import Board
-from images import LocalImageManager, LocalReferenceCounts
 
 from . import image_routes, tilepool_routes
+from .config import Config, LocalDiskConfig
 
 
-def create_app() -> Flask:
+def create_app(config: type[Config] = LocalDiskConfig) -> Flask:
     app = Flask(__name__)
 
-    app.config["DB"] = FileTilePoolDB("tiles")
-    app.config["IMAGES"] = LocalImageManager("images_store", LocalReferenceCounts("counts"))
+    app.config.from_object(config)
 
     @app.route("/")
     def index():
