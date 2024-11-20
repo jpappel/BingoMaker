@@ -1,22 +1,13 @@
 import boto3
-import mongomock
 import pytest
 from botocore.client import ClientError
 
-from src.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB, mongo
+from src.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB
 from src.data.persistence import TilePoolDB
 from src.game.game import Tile, TilePool
 
 DB_NAME = "BingoMakerTestDB"
 COLLECTION_NAME = "BingoMakerTestCollection"
-
-
-class MongoTilePoolDBTest(mongo.MongoTilePoolDB):
-    def __init__(self):
-        self.client = mongomock.MongoClient()
-        self.db = self.client[DB_NAME]
-        self.collection = self.db[COLLECTION_NAME]
-        self.collection.create_index("Name", unique=True)
 
 
 class DynamoTilePoolDBTest(DynamoTilePoolDB):
@@ -44,7 +35,7 @@ class DynamoTilePoolDBTest(DynamoTilePoolDB):
 
 
 @pytest.fixture(
-    params=[MongoTilePoolDBTest, FileTilePoolDB, MemoryTilePoolDB, DynamoTilePoolDBTest]
+    params=[FileTilePoolDB, MemoryTilePoolDB, DynamoTilePoolDBTest]
 )
 def db(request, tmp_path):
     driver = request.param(tmp_path) if request.param is FileTilePoolDB else request.param()
