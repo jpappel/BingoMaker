@@ -17,7 +17,7 @@ uv sync
 
 ### Testing
 
-To run tests for the project you can either run `make test`, `uv run pytest` or activate the virtual environment and run `pytest`
+To run tests for the project you can run `make test` for tests without a [LocalStack](https://www.localstack.cloud/) instance or use `make test-full` for all tests.
 
 ### Linting/Formatting
 
