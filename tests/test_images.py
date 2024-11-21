@@ -77,7 +77,9 @@ def refcounts(request: pytest.FixtureRequest, tmp_path: Path):
     return driver({})
 
 
-@pytest.fixture(params=[LocalImageManager, S3ImageManagerTest])
+@pytest.fixture(
+    params=[LocalImageManager, pytest.param(S3ImageManagerTest, marks=pytest.mark.localstack)]
+)
 def image_manager(request: pytest.FixtureRequest, tmp_path: Path):
     ref_counts = MemoryReferenceCounts({})
     driver = request.param

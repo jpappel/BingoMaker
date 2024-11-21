@@ -27,7 +27,7 @@ deploy:
 	"app:create_app()"
 
 test:
-	@uv run pytest
+	@uv run pytest -m "not localstack"
 
 test-full:
 	@docker compose up -d

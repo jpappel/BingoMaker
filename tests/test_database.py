@@ -35,7 +35,11 @@ class DynamoTilePoolDBTest(DynamoTilePoolDB):
 
 
 @pytest.fixture(
-    params=[FileTilePoolDB, MemoryTilePoolDB, DynamoTilePoolDBTest]
+    params=[
+        FileTilePoolDB,
+        MemoryTilePoolDB,
+        pytest.param(DynamoTilePoolDBTest, marks=pytest.mark.localstack),
+    ]
 )
 def db(request, tmp_path):
     driver = request.param(tmp_path) if request.param is FileTilePoolDB else request.param()

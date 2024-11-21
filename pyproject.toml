@@ -23,6 +23,9 @@ dev-dependencies = [
 pythonpath = [".", "src"]
 testpaths = ["tests"]
 filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+    "localstack: mark tests that require a running localstack instance"
+]
 
 [tool.ruff]
 line-length = 100
