@@ -17,6 +17,10 @@ def create_app(config: type[Config] = LocalDiskConfig) -> Flask:
     @app.route("/")
     def index():
         return render_template("index.html")
+    
+    @app.route("/tilesets")
+    def tilesets():
+        return render_template("tilesets.html")
 
     app.register_blueprint(tilepool_routes.bp)
     app.register_blueprint(image_routes.bp)

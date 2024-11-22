@@ -4,72 +4,129 @@
   <meta charset="UTF-8">
   <title>Bingo Card Maker</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-  <!-- Header Bar with Login Button, will add the name to the top of card when that function is added -->
-  <header>
-    <div class="header-bar">
-      <h1>Bingo Card Maker</h1>
-      <button class="login-button">Login</button>
-    </div>
-  </header>
-  <main>
-   
-    <div class="bingo-heading">
-      <h2>BINGO</h2>
-      <hr>
-    </div>
 
-    <!-- Bingo Card Grid -->
-    <section class="bingo-card" id="bingo-card">
-      <!-- Predefined bingo grid with numbered cells, possibly will gen this with js in the future  -->
-      <div class="bingo-cell" id="cell-1"></div>
-      <div class="bingo-cell" id="cell-2"></div>
-      <div class="bingo-cell" id="cell-3"></div>
-      <div class="bingo-cell" id="cell-4"></div>
-      <div class="bingo-cell" id="cell-5"></div>
+    <!-- Header Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Bingo Card Generator</a>
+            <div class="navbar-nav">
+               <!-- <a class="nav-link" href="{{ url_for('tilesets') }}">Tile Sets</a> -->
+            </div>
+            <button class="btn btn-outline-light" type="button">Login</button>
+        </div>
+    </nav>
 
-      <div class="bingo-cell" id="cell-6"></div>
-      <div class="bingo-cell" id="cell-7"></div>
-      <div class="bingo-cell" id="cell-8"></div>
-      <div class="bingo-cell" id="cell-9"></div>
-      <div class="bingo-cell" id="cell-10"></div>
-
-      <div class="bingo-cell" id="cell-11"></div>
-      <div class="bingo-cell" id="cell-12"></div>
-      <div class="bingo-cell" id="cell-13"></div> <!-- Center cell -->
-      <div class="bingo-cell" id="cell-14"></div>
-      <div class="bingo-cell" id="cell-15"></div>
-
-      <div class="bingo-cell" id="cell-16"></div>
-      <div class="bingo-cell" id="cell-17"></div>
-      <div class="bingo-cell" id="cell-18"></div>
-      <div class="bingo-cell" id="cell-19"></div>
-      <div class="bingo-cell" id="cell-20"></div>
-
-      <div class="bingo-cell" id="cell-21"></div>
-      <div class="bingo-cell" id="cell-22"></div>
-      <div class="bingo-cell" id="cell-23"></div>
-      <div class="bingo-cell" id="cell-24"></div>
-      <div class="bingo-cell" id="cell-25"></div>
-    </section>
-
-    <!-- Buttons -->
-    <div class="button-container">
-      <button id="edit-btn">Edit</button>
-      <button id="print-btn">Print Bingo Card</button>
+    <!-- Welcome Section -->
+    <div id="welcome-section" class="text-center my-5">
+        <h2>Welcome to the Bingo Card Generator!</h2>
+        <p>Create your custom bingo cards easily.</p>
+        <!-- Added Button to Open the Create Tile Pool Modal -->
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createTilesetModal">Create New Tile Pool</button>
     </div>
 
-    <!-- Modal Dialog -->
-    <div id="modal" class="modal">
-      <div class="modal-content">
-        <span id="close-modal" class="close">&times;</span>
-        <h2>Edit Bingo Words</h2>
-        <textarea id="modal-input" placeholder="Enter words or numbers, one per line"></textarea>
-        <button id="save-btn">Save</button>
+    <!-- Create New Tile Pool Modal -->
+    <div class="modal fade" id="createTilesetModal" tabindex="-1" aria-labelledby="createTilesetModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="createTilesetForm">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h5 class="modal-title" id="createTilesetModalLabel">Create New Tile Pool</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="tileset-name" class="form-label">Tile Pool Name</label>
+                <input type="text" class="form-control" id="tileset-name" required placeholder="Enter tile pool name">
+              </div>
+              <div class="mb-3">
+                <label for="tileset-tiles" class="form-label">Tiles (one per line)</label>
+                <textarea class="form-control" id="tileset-tiles" rows="10" required placeholder="Enter tiles separated by new lines..."></textarea>
+              </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="create-tileset-btn">Create Tile Pool</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  </main>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- Bingo Section -->
+    <div id="bingo-section" style="display: none;">
+        <div class="text-center my-4">
+            <h2>Your Bingo Card</h2>
+            <hr class="w-50 mx-auto">
+        </div>
+
+        <!-- Button Container -->
+        <div class="d-flex justify-content-center mb-3">
+            <button id="edit-btn" class="btn btn-secondary mx-2">Edit Words</button>
+            <button id="print-btn" class="btn btn-secondary mx-2">Print</button>
+            <button id="save-card-btn" class="btn btn-secondary mx-2">Save Bingo Card</button>
+            <button id="view-saved-btn" class="btn btn-secondary mx-2">View Saved Cards</button>
+        </div>
+
+        <!-- Bingo Card -->
+        <div class="container">
+            <div id="bingo-board" class="row row-cols-5 g-2">
+                <!-- Bingo cells will be generated here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="modal" class="modal fade" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModalLabel">Edit Words</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <textarea id="create-card-input" class="form-control" rows="8" placeholder="Enter words separated by new lines..."></textarea>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button id="save-btn" class="btn btn-primary">Save</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Saved Cards Modal -->
+    <div id="saved-cards-modal" class="modal fade" tabindex="-1" aria-labelledby="savedCardsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="savedCardsModalLabel">Saved Bingo Cards</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <ul id="saved-cards-list" class="list-group">
+              <!-- Saved cards will be listed here -->
+            </ul>
+          </div>
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
