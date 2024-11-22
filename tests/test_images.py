@@ -6,6 +6,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from src.images import (
+    DynamoRefernceCounts,
     LocalImageManager,
     LocalReferenceCounts,
     MemoryReferenceCounts,
@@ -68,7 +69,61 @@ class S3ImageManagerTest(S3ImageManager):
             raise
 
 
-@pytest.fixture(params=[LocalReferenceCounts, MemoryReferenceCounts])
+class DynamoRefernceCountsTest(DynamoRefernceCounts):
+    def __init__(self, _):
+        self.table_name = "TestRefenceCounts"
+        self.client = boto3.client(
+            "dynamodb",
+            region_name="us-east-1",
+            endpoint_url="http://localhost.localstack.cloud:4566",
+            aws_access_key_id="aVeryFakeAccessKey",
+            aws_secret_access_key="alsoAVeryFakeSecretKey",
+        )
+
+        if self.table_exists():
+            self.delete_table()
+        self.create_table()
+
+    def table_exists(self) -> bool:
+        """Check if the table exists"""
+        try:
+            response = self.client.describe_table(TableName=self.table_name)
+            return response["Table"]["TableStatus"] in ("ACTIVE", "CREATING")
+        except self.client.exceptions.ResourceNotFoundException:
+            return False
+
+    def delete_table(self):
+        """Delete the table"""
+        try:
+            self.client.delete_table(TableName=self.table_name)
+            waiter = self.client.get_waiter("table_not_exists")
+            waiter.wait(TableName=self.table_name)
+        except self.client.exceptions.ResourceNotFoundException:
+            return
+
+    def create_table(self):
+        """Create the table"""
+        self.client.create_table(
+            TableName=self.table_name,
+            AttributeDefinitions=[
+                {"AttributeName": "ImageID", "AttributeType": "S"},
+            ],
+            KeySchema=[
+                {"AttributeName": "ImageID", "KeyType": "HASH"},
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        waiter = self.client.get_waiter("table_exists")
+        waiter.wait(TableName=self.table_name)
+
+
+@pytest.fixture(
+    params=[
+        LocalReferenceCounts,
+        MemoryReferenceCounts,
+        pytest.param(DynamoRefernceCountsTest, marks=pytest.mark.localstack),
+    ]
+)
 def refcounts(request: pytest.FixtureRequest, tmp_path: Path):
     driver = request.param
     if driver == LocalReferenceCounts:
@@ -97,7 +152,7 @@ class TestRefenceCounts:
         del refcounts["img_1"]
         assert len(refcounts) == 0
         with pytest.raises(KeyError):
-            refcounts["img_1"]
+            print(refcounts["img_1"])
 
     def test_add_prune(self, refcounts: ReferenceCounts):
         for i in range(10):
