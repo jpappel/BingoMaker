@@ -5,7 +5,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,dynamodb
+      - SERVICES=s3,dynamodb,lambda
       - GATEWAY_LISTEN=0.0.0.0:4566
     volumes:
       - "./localstack:/docker-entrypoint-initaws.d"

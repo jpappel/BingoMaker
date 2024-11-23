@@ -1,5 +1,6 @@
-.PHONY: all lint lint-fix format test info server deploy
+.PHONY: all lint lint-fix format test info server deploy lambdas
 
+PYTHON_VERSION=3.13
 DEPLOY_NAME := BingoMaker
 DEPLOY_WORKERS := 3
 DEPLOY_BIND := 0.0.0.0:80
@@ -44,8 +45,29 @@ test-all:
 	@uv run pytest
 	@docker compose down
 
+# Lambdas
+
+lambdas: layer/layer.zip
+
+layer:
+	mkdir $@
+
+layer/requirements.txt: pyproject.toml uv.lock | layer
+	uv export --only-group lambda > $@
+
+layer/python/lib/python$(PYTHON_VERSION)/site-packages: layer/requirements.txt bingomaker
+	uv pip install -r $< --target $@
+	cp -r $(word 2, $^) $@
+
+layer/layer.zip: layer/python/lib/python$(PYTHON_VERSION)/site-packages
+	@echo "---------------"
+	@echo "Uncompressed layer size: $$(du -hd 0 layer/python)"
+	@uv run scripts/lambda_zipper.py $@ layer/python
+	@echo "Compressed layer size: $$(du -h layer/layer.zip)"
+
 clean:
 	uv run ruff clean
+	rm -rf layer/*
 
 info:
 	@printf "%s\n" \
@@ -60,4 +82,5 @@ info:
 		"server   - run a a development server" \
 		"deploy   - deploy application using gunicorn" \
 		"remote-deploy - deploy application using terraform" \
-		"remote-destroy - destroy application using terraform"
+		"remote-destroy - destroy application using terraform" \
+		"lambdas   - build all lambda layers and functions"
