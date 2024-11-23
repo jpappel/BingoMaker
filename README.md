@@ -8,6 +8,8 @@ Please ensure you have the following installed
 
 * [uv](https://docs.astral.sh/uv/#getting-started) for project management
 * [docker](https://www.docker.com/)
+* [terraform](https://developer.hashicorp.com/terraform/install)
+
 
 ```bash
 git clone https://github.com/cs399f24/BingoMaker
@@ -45,10 +47,18 @@ A local development server which listens on `0.0.0.0:8080` can be started via `m
 
 ## Deployment
 
-### Monolith
+Deployment is done via Terraform. the `deploy` directory contains the necessary terraform files to deploy the application
 
-The monolith version of the application can be deployed to a Linux VPS such as AWS EC2 by using the `userdata.sh` script provided in `deploy/`.
-The script assumes that the system the software is being installed on has access to curl and uses the `yum` package manager. 
+### Deploy
+running `make remote-deploy` will create all the necessary resources in AWS.
+
+After the resources are created, the application will need to be deployed on [AWS Amplify](https://us-east-1.console.aws.amazon.com/amplify/apps).
+
+This is due to a limitation in Terraform where it cannot deploy a Amplify App without a backend. [#24720](https://github.com/hashicorp/terraform-provider-aws/issues/24720)
+
+### Destroy
+to destroy the resources run `make remote-destroy`.
+
 
 ## API
 

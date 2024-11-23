@@ -18,6 +18,12 @@ format:
 server:
 	uv run src/__init__.py
 
+remote-deploy:
+	@terraform -chdir=deploy apply -auto-approve
+
+remote-destroy:
+	@terraform -chdir=deploy destroy -auto-approve
+
 deploy:
 	uv run --no-dev --directory=src gunicorn \
 	--daemon --bind $(DEPLOY_BIND) \
