@@ -1,6 +1,7 @@
-from data.persistence import SortMethod, TilePoolDB, dict_to_tile, tile_to_dict
 from flask import Blueprint, current_app, request
-from game.game import TilePool
+
+from bingomaker.data.persistence import SortMethod, TilePoolDB, dict_to_tile, tile_to_dict
+from bingomaker.game.game import TilePool
 
 bp = Blueprint("tilepools", __name__)
 

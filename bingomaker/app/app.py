@@ -1,8 +1,9 @@
 import random
 
-from data.persistence import TilePoolDB, tile_to_dict
 from flask import Flask, current_app, render_template, request
-from game.game import Board
+
+from bingomaker.data.persistence import TilePoolDB, tile_to_dict
+from bingomaker.game.game import Board
 
 from . import image_routes, tilepool_routes
 from .config import Config, LocalDiskConfig

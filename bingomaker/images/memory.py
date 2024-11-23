@@ -1,4 +1,4 @@
-from .image_manager import Count, ImageID, ReferenceCounts
+from bingomaker.images.image_manager import Count, ImageID, ReferenceCounts
 
 
 class MemoryReferenceCounts(ReferenceCounts):

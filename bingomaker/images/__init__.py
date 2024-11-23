@@ -1,8 +1,8 @@
-from .dynamo_counts import DynamoReferenceCounts
-from .image_manager import ImageManager, ReferenceCounts
-from .local import LocalImageManager, LocalReferenceCounts
-from .memory import MemoryReferenceCounts
-from .s3 import S3ImageManager
+from bingomaker.images.dynamo_counts import DynamoReferenceCounts
+from bingomaker.images.image_manager import ImageManager, ReferenceCounts
+from bingomaker.images.local import LocalImageManager, LocalReferenceCounts
+from bingomaker.images.memory import MemoryReferenceCounts
+from bingomaker.images.s3 import S3ImageManager
 
 __all__ = [
     "ReferenceCounts",

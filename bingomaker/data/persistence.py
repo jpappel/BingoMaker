@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from enum import Enum
 from typing import TypedDict
 
-from game.game import Tile, TilePool
+from bingomaker.game.game import Tile, TilePool
 
 
 class DBResult(TypedDict):

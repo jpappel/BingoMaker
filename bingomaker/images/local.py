@@ -4,7 +4,7 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-from .image_manager import (
+from bingomaker.images.image_manager import (
     Count,
     ImageID,
     ImageInfo,

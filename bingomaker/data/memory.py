@@ -2,8 +2,8 @@ import datetime
 from collections.abc import Iterable
 from uuid import uuid4
 
-from data.persistence import DBResult, SortMethod, TilePoolDB
-from game.game import Tile, TilePool
+from bingomaker.data.persistence import DBResult, SortMethod, TilePoolDB
+from bingomaker.game.game import Tile, TilePool
 
 
 class MemoryTilePoolDB(TilePoolDB):
