@@ -1,4 +1,4 @@
-from src.game.game import Board, Tile, TilePool
+from bingomaker.game.game import Board, Tile, TilePool
 
 
 def example_game(size: int, seed: int = 0, free_square: bool = False) -> Board:

@@ -2,9 +2,9 @@ import boto3
 import pytest
 from botocore.client import ClientError
 
-from src.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB
-from src.data.persistence import TilePoolDB
-from src.game.game import Tile, TilePool
+from bingomaker.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB
+from bingomaker.data.persistence import TilePoolDB
+from bingomaker.game.game import Tile, TilePool
 
 DB_NAME = "BingoMakerTestDB"
 COLLECTION_NAME = "BingoMakerTestCollection"

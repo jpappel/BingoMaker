@@ -3,7 +3,7 @@ import io
 import pytest
 from PIL import Image
 
-from src.image_process import resize_gif, resize_image
+from bingomaker.image_process import resize_gif, resize_image
 
 
 @pytest.fixture

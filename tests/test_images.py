@@ -5,7 +5,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 
-from src.images import (
+from bingomaker.images import (
     DynamoReferenceCounts,
     LocalImageManager,
     LocalReferenceCounts,
@@ -13,7 +13,7 @@ from src.images import (
     ReferenceCounts,
     S3ImageManager,
 )
-from src.images.image_manager import Count, ImageManager
+from bingomaker.images.image_manager import Count, ImageManager
 
 
 class S3ImageManagerTest(S3ImageManager):
