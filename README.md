@@ -1,5 +1,11 @@
 # BingoMaker
 
+## Notes
+
+### Lambdacism
+
+* build layer for each module
+
 ## Development
 
 ### Setup

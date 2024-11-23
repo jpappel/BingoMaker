@@ -2,7 +2,6 @@ import os
 from urllib import parse
 
 from flask import Blueprint, current_app, redirect, request, send_file
-
 from images.image_manager import ImageInfo, ImageManager
 
 bp = Blueprint("images", __name__)

@@ -1,6 +1,6 @@
 from examples import example_game
 
-from src.game.game import Tile, TilePool
+from bingomaker.game.game import Tile, TilePool
 
 
 def test_consistent_get_tile():

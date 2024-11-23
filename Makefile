@@ -28,7 +28,7 @@ remote-destroy: deploy/.terraform
 	@terraform -chdir=deploy destroy -auto-approve
 
 deploy:
-	uv run --no-dev --directory=src gunicorn \
+	uv run --no-dev --directory=bingomaker gunicorn \
 	--daemon --bind $(DEPLOY_BIND) \
 	--workers $(DEPLOY_WORKERS) \
 	--log-syslog \
