@@ -1,18 +1,50 @@
 import boto3
+from boto3.exceptions import Boto3Error
 
 from .image_manager import Count, ImageID, ReferenceCounts
 
 
 class DynamoRefernceCounts(ReferenceCounts):
     def __init__(self, table_name: str):
-        super().__init__({})
-        self._diffs = {}
+        self._counts: dict[ImageID, Count] = {}
         self.table_name = table_name
         self.client = boto3.client("dynamodb", region_name="us-east-1")
+        self.read()
+
+    def _dynamo_to_count(self, item: dict) -> Count:
+        return Count(int(item["confirmed"]["N"]), int(item["unconfirmed"]["N"]))
 
     def __delitem__(self, key: ImageID):
         self.client.delete_item(TableName=self.table_name, Key={"ImageID": {"S": key}})
         del self._counts[key]
+
+    def __contains__(self, image_id: ImageID) -> bool:
+        try:
+            response = self.client.get_item(
+                TableName=self.table_name, Key={"ImageID": {"S": image_id}}
+            )
+        except Boto3Error:
+            return False
+        return "Item" in response
+
+    def __getitem__(self, key: ImageID) -> Count:
+        response = self.client.get_item(TableName=self.table_name, Key={"ImageID": {"S": key}})
+        if "Item" not in response:
+            raise KeyError()
+
+        self._counts[key] = self._dynamo_to_count(response["Item"])
+        return self._counts[key]
+
+    def __setitem__(self, key: ImageID, count: Count):
+        self._counts[key] = count
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={
+                "ImageID": {"S": key},
+                "confirmed": {"N": str(count.confirmed)},
+                "unconfirmed": {"N": str(count.unconfirmed)},
+            },
+        )
 
     def prune(self):
         response = self.client.scan(
@@ -71,7 +103,4 @@ class DynamoRefernceCounts(ReferenceCounts):
     def read(self):
         response = self.client.scan(TableName=self.table_name)
         items = response.get("Items", [])
-        self._counts = {
-            item["ImageID"]["S"]: Count(int(item["confirmed"]["N"]), int(item["unconfirmed"]["N"]))
-            for item in items
-        }
+        self._counts = {item["ImageID"]["S"]: self._dynamo_to_count(item) for item in items}
