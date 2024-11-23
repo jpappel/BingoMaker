@@ -1,7 +1,7 @@
 import os
 
-from data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB
-from images import (
+from bingomaker.data import DynamoTilePoolDB, FileTilePoolDB, MemoryTilePoolDB
+from bingomaker.images import (
     LocalImageManager,
     LocalReferenceCounts,
     MemoryReferenceCounts,

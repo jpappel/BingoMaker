@@ -3,8 +3,9 @@ import datetime
 from uuid import uuid4
 
 import boto3
-from data.persistence import DBResult, SortMethod, TilePoolDB, tile_to_dict
-from game.game import Tile, TilePool
+
+from bingomaker.data.persistence import DBResult, SortMethod, TilePoolDB, tile_to_dict
+from bingomaker.game.game import Tile, TilePool
 
 
 class DynamoTilePoolDB(TilePoolDB):

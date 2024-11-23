@@ -1,11 +1,7 @@
 import json
 from typing import Any
 
-# HACK: python pattern matching behaves weirdly
-try:
-    from bingomaker.game.game import Board, Tile, TilePool
-except ModuleNotFoundError:
-    from game.game import Board, Tile, TilePool
+from bingomaker.game.game import Board, Tile, TilePool
 
 
 class BoardEncoder(json.JSONEncoder):

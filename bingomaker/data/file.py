@@ -5,8 +5,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TextIO
 
-from data.persistence import DBResult, SortMethod, TilePoolDB, dict_to_tile, tile_to_dict
-from game.game import Tile, TilePool
+from bingomaker.data.persistence import DBResult, SortMethod, TilePoolDB, dict_to_tile, tile_to_dict
+from bingomaker.game.game import Tile, TilePool
 
 
 def read_text(path: str) -> TilePool:

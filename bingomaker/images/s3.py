@@ -3,7 +3,7 @@ import hashlib
 import boto3
 from botocore.exceptions import ClientError
 
-from .image_manager import Count, ImageID, ImageInfo, ImageManager, ReferenceCounts
+from bingomaker.images.image_manager import Count, ImageID, ImageInfo, ImageManager, ReferenceCounts
 
 
 class S3ImageManager(ImageManager):
