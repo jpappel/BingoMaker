@@ -72,6 +72,7 @@ class S3ImageManagerTest(S3ImageManager):
 class DynamoRefernceCountsTest(DynamoRefernceCounts):
     def __init__(self, _):
         self.table_name = "TestRefenceCounts"
+        self._counts = {}
         self.client = boto3.client(
             "dynamodb",
             region_name="us-east-1",
