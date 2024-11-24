@@ -6,7 +6,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from src.images import (
-    DynamoRefernceCounts,
+    DynamoReferenceCounts,
     LocalImageManager,
     LocalReferenceCounts,
     MemoryReferenceCounts,
@@ -69,7 +69,7 @@ class S3ImageManagerTest(S3ImageManager):
             raise
 
 
-class DynamoRefernceCountsTest(DynamoRefernceCounts):
+class DynamoRefernceCountsTest(DynamoReferenceCounts):
     def __init__(self, _):
         self.table_name = "TestRefenceCounts"
         self._counts = {}
