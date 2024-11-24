@@ -4,7 +4,7 @@ from boto3.exceptions import Boto3Error
 from .image_manager import Count, ImageID, ReferenceCounts
 
 
-class DynamoRefernceCounts(ReferenceCounts):
+class DynamoReferenceCounts(ReferenceCounts):
     def __init__(self, table_name: str):
         self._counts: dict[ImageID, Count] = {}
         self.table_name = table_name
