@@ -7,5 +7,7 @@ services:
     environment:
       - SERVICES=s3,dynamodb,lambda
       - GATEWAY_LISTEN=0.0.0.0:4566
+      - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - "./localstack:/docker-entrypoint-initaws.d"
+      - /var/run/docker.sock:/var/run/docker.sock
