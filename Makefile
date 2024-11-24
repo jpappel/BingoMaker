@@ -48,6 +48,7 @@ test-all:
 # Lambdas
 
 lambdas: layer/layer.zip
+	@uv run scripts/push_layer.py
 
 layer:
 	mkdir $@
@@ -55,11 +56,11 @@ layer:
 layer/requirements.txt: pyproject.toml uv.lock | layer
 	uv export --only-group lambda > $@
 
-layer/python/lib/python$(PYTHON_VERSION)/site-packages: layer/requirements.txt bingomaker
+layer/python: layer/requirements.txt bingomaker
 	uv pip install -r $< --target $@
-	cp -r $(word 2, $^) $@
+	cp -r $(word 2, $^) layer/python
 
-layer/layer.zip: layer/python/lib/python$(PYTHON_VERSION)/site-packages
+layer/layer.zip: layer/python
 	@echo "---------------"
 	@echo "Uncompressed layer size: $$(du -hd 0 layer/python)"
 	@uv run scripts/lambda_zipper.py $@ layer/python
