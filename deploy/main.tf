@@ -92,7 +92,7 @@ data "aws_iam_policy_document" "amplify_source" {
 
 resource "null_resource" "upload_static_files" {
   provisioner "local-exec" {
-    command  = "aws s3 cp ../src/app/static s3://${aws_s3_bucket.amplify_source.bucket} --recursive && aws s3 cp ../src/app/templates s3://${aws_s3_bucket.amplify_source.bucket} --recursive"
+    command  = "aws s3 cp ../static s3://${aws_s3_bucket.amplify_source.bucket} --recursive"
   }
   depends_on = [aws_s3_bucket.amplify_source]
 }
