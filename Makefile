@@ -46,28 +46,35 @@ test-all:
 
 # Lambdas
 
-lambdas: layer/layer.zip
-	@uv run scripts/push_layer.py
 
-layer:
-	mkdir $@
+BASE_LAYER_DIR := layers/base_layer
+HELPER_LAYER_DIR := layers/helper_layer
 
-layer/requirements.txt: pyproject.toml uv.lock | layer
-	uv export --only-group lambda > $@
+$(BASE_LAYER_DIR):
+	mkdir -p $@
 
-layer/python: layer/requirements.txt bingomaker
+$(BASE_LAYER_DIR)/base_layer.zip: $(BASE_LAYER_DIR)/python
+	@echo "------Base Layer------"
+	@echo "Uncompressed layer size: $$(du -hd 0 $<)"
+	@uv run scripts/lambda_zipper.py $@ $<
+	@echo "Compressed layer size: $$(du -h $@)"
+
+$(BASE_LAYER_DIR)/python: $(BASE_LAYER_DIR)/requirements.txt bingomaker
 	uv pip install -r $< --target $@
-	cp -r $(word 2, $^) layer/python
+	cp -r $(word 2, $^) $@
 
-layer/layer.zip: layer/python
-	@echo "---------------"
-	@echo "Uncompressed layer size: $$(du -hd 0 layer/python)"
-	@uv run scripts/lambda_zipper.py $@ layer/python
-	@echo "Compressed layer size: $$(du -h layer/layer.zip)"
+$(BASE_LAYER_DIR)/requirements.txt: pyproject.toml uv.lock | $(BASE_LAYER_DIR)
+	uv export --only-group lambda -o $@
+
+$(HELPER_LAYER_DIR)/helper_layer.zip: $(HELPER_LAYER_DIR)/python
+	@echo "------Helper Layer------"
+	@echo "Uncompressed layer size: $$(du -hd 0 $<)"
+	@uv run scripts/lambda_zipper.py $@ $<
+	@echo "Compressed layer size: $$(du -h $@)"
 
 clean:
 	uv run ruff clean
-	rm -rf layer/*
+	rm -rf layers/*
 
 info:
 	@printf "%s\n" \
