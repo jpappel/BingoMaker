@@ -153,7 +153,7 @@ class TestRefenceCounts:
         del refcounts["img_1"]
         assert len(refcounts) == 0
         with pytest.raises(KeyError):
-            print(refcounts["img_1"])
+            refcounts["img_1"]
 
     def test_add_prune(self, refcounts: ReferenceCounts):
         for i in range(10):
