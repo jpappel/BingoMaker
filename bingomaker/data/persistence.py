@@ -53,7 +53,7 @@ def dict_to_tile(item: TileDict) -> Tile:
     type_ = TileType(item["type"])
     text = item["content"]
     tags = frozenset(item["tags"])
-    image_url = item["content"] if type_ == TileType.IMAGE else None
+    image_url = item["content"] if type_ == TileType.IMAGE.value else None
     return Tile(text, tags, image_url)
 
 
