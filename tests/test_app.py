@@ -136,8 +136,8 @@ class TestBingoCard:
 
         assert body["id"] == "20"
         assert body["size"] == 5
-        assert len(body["grid"]) == 25
-        assert body["grid"][12]["content"] == "Free"
+        assert len(body["tiles"]) == 25
+        assert body["tiles"][12]["content"] == "Free"
 
 
 class TestGetPool:

@@ -48,7 +48,7 @@ def create_app(config: type[Config] = LocalDiskConfig) -> Flask:
         return {
             "id": board.id,
             "size": board.size,
-            "grid": [tile_to_dict(tile) for row in board.board for tile in row],
+            "tiles": [tile_to_dict(tile) for row in board.board for tile in row],
         }
 
     return app
