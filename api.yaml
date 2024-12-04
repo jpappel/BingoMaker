@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Bingo  Maker API
   description: A service for creating and managing tile pools containing text or image tiles, generating bingo cards from tile pools, and uploading images to be used in a tile pool.
-  version: 0.3.0
+  version: 0.3.2
 
 tags:
   - name: Tile Pools
@@ -169,15 +169,6 @@ paths:
           schema:
             type: integer
             default: 5
-        - name: excluded_tags
-          in: query
-          required: false
-          description: A array of tags to exlude for this card
-          schema:
-            type: array
-            default: []
-            items:
-              type: string
         - name: seed
           in: query
           required: false
@@ -420,7 +411,7 @@ components:
           description: The dimensions (size x size) of the bingo card grid
       required:
         - id
-        - grid
+        - tiles
         - size
     ImageReferenceCounts:
       type: object

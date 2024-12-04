@@ -32,7 +32,7 @@ def lambda_handler(event, context):
     body = {
         "id": board.id,
         "size": board.size,
-        "grid": [tile_to_dict(tile) for row in board.board for tile in row],
+        "tiles": [tile_to_dict(tile) for row in board.board for tile in row],
     }
 
     return {"statusCode": 200, "body": json.dumps(body)}
