@@ -4,9 +4,6 @@ let savedCardsModal;
 let createTilesetModal;
 let editModal;
 let currentTilePoolName = null; 
-//-- INSERT EC2 INSTANCE IP HERE --
-const server_ip = "";
-
 
 (function () {
   // Wait for the DOM to fully load before running scripts
@@ -14,7 +11,7 @@ const server_ip = "";
     await initPage();
 
     function login() {
-      window.location.href = `${server_ip}/login`;
+      window.location.href = `${cognito_ip}/login`;
     }
     document.getElementById('login-btn').addEventListener('click', login);
 
