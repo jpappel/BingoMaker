@@ -1,8 +1,9 @@
 import json
 
+from lambda_helper import get_pool_manager
+
 from bingomaker.data.persistence import dict_to_tile, tile_to_dict
 from bingomaker.game.game import TilePool
-from lambda_helper import get_pool_manager
 
 
 def lambda_handler(event, context):
