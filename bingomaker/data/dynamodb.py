@@ -210,7 +210,37 @@ class DynamoTilePoolDB(TilePoolDB):
         start_index, end_index = self.paginate(len(sorted_items), size, page)
         paginated_items = sorted_items[start_index:end_index]
 
-        return paginated_items
+        def get_pool(item) -> TilePool:
+            tiles_data = item["tiles"]
+            tiles = frozenset(
+                Tile(
+                    text=tile.get("content"),
+                    tags=frozenset(tag for tag in tile.get("tags")),
+                    image_url=tile.get("imageUrl") or None,
+                )
+                for tile in tiles_data
+            )
+            free_tile_data = item.get("freeTile", {})
+            img_url = free_tile_data.get("imageUrl", "")
+            if not img_url:
+                img_url = None
+            free = Tile(
+                text=free_tile_data.get("content", ""),
+                tags=frozenset(free_tile_data.get("tags", [])),
+                image_url=img_url,
+            )
+            return TilePool(tiles, free)
+
+        return [
+            {
+                "owner": item["owner"],
+                "name": item["name"],
+                "tiles": get_pool(item),
+                "id": item["id"],
+                "created_at": item["createdAt"],
+            }
+            for item in paginated_items
+        ]
 
     def get_tile_pool(self, tile_pool_id: str) -> DBResult | None:
         print(f"Retrieving tile pool with ID: {tile_pool_id}")
