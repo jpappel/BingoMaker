@@ -9,17 +9,14 @@ from bingomaker.game.game import Tile, TilePool
 
 
 class DynamoTilePoolDB(TilePoolDB):
-    def __init__(self, table_name: str = "BingoMaker", endpoint_url: str = "https://amazonaws.com"):
-        self.client = boto3.client("dynamodb", region_name="us-east-1", endpoint_url=endpoint_url)
-        self.table_name = table_name
-
-        with contextlib.suppress(Exception):
-            self.client.create_table(
-                TableName=table_name,
-                KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
-                AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
-                ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
+    def __init__(self, table_name: str = "BingoMaker", endpoint_url: str | None = None):
+        if endpoint_url:
+            self.client = boto3.client(
+                "dynamodb", region_name="us-east-1", endpoint_url=endpoint_url
             )
+        else:
+            self.client = boto3.client("dynamodb", region_name="us-east-1")
+        self.table_name = table_name
 
     def _dict_to_dynamodb(self, attr_dict):
         """Convert a standard dictionary to DynamoDB format."""
