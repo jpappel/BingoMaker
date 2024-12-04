@@ -1,20 +1,32 @@
-import bingomaker
+import json
+
+from bingomaker.data.persistence import SortMethod, tile_to_dict
 from lambda_helper import get_pool_manager
 
 
 def lambda_handler(event, context):
-    # TODO: get values from event/context
-    size: int | None
-    page: int | None
-    sort: "age" | "name" | "owner" | None
-    sort_asc: bool
+    query_params = event.get("queryStringParameters", {}) or {}
+    try:
+        size = int(query_params.get("size", 25))
+        page = int(query_params.get("page", 1))
+    except ValueError:
+        return {"statusCode": 400, "body": "Incorrect query param type"}
+
+    try:
+        sort = SortMethod(query_params.get("sort", SortMethod.DEFAULT))
+    except ValueError:
+        return {"statusCode": 400, "body": "Invalid sort method"}
+
+    if "sortAsc" in query_params:
+        sort_asc = query_params["sortAsc"].lower() in ("true", "1", "t", "yes")
+    else:
+        sort_asc = True
     db = get_pool_manager()
 
     if (results := db.get_tile_pools(size, page, sort, sort_asc)) is None:
-        return {"status_code": 200, "body": jsonify([])}
+        return {"statusCode": 200, "body": json.dumps([])}
 
-    response_body = []
-    # TODO: add try catch
+    body = []
     for result in results:
         item = {
             "id": result["id"],
@@ -23,8 +35,8 @@ def lambda_handler(event, context):
             "created_at": result["created_at"],
             "tiles": [tile_to_dict(tile) for tile in result["tiles"].tiles],
         }
-        if (free := result["tiles"].free) is not None:
+        if free := result["tiles"].free:
             item["free_tile"] = tile_to_dict(free)
-        response_body.append(item)
+        body.append(item)
 
-    return {"status_code": 200, "body": jsonify(response_body)}
+    return {"statusCode": 200, "body": json.dumps(body)}
