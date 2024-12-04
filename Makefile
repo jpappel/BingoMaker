@@ -76,6 +76,7 @@ $(HELPER_LAYER_DIR)/helper_layer.zip: $(HELPER_LAYER_DIR)/python
 clean:
 	uv run ruff clean
 	rm -rf layers/*
+	rm lambdas/*.zip
 
 info:
 	@printf "%s\n" \
