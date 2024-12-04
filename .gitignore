@@ -12,4 +12,5 @@ __pycache__
 .env
 
 # build files
-layers
+layers/base_layer
+*.zip
