@@ -14,6 +14,7 @@ lint-fix:
 
 format:
 	uv run ruff format
+	terraform -chdir=deploy fmt
 
 server:
 	uv run src/__init__.py
