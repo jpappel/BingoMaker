@@ -22,6 +22,24 @@ resource "aws_lambda_function" "functions" {
   source_code_hash            = data.archive_file.function_zip[each.key].output_base64sha256
 
   role                        = data.aws_iam_role.lab_role.arn
+
+  layers = [
+    aws_lambda_layer_version.base_layer.arn,
+    aws_lambda_layer_version.helper_layer.arn
+  ]
+}
+
+
+resource "aws_lambda_layer_version" "helper_layer" {
+    filename = "../layers/helper_layer/helper_layer.zip"
+    layer_name = "helper_layer"
+    compatible_runtimes = ["python3.13"]
+}
+
+resource "aws_lambda_layer_version" "base_layer" {
+    filename = "../layers/base_layer/base_layer.zip"
+    layer_name = "base_layer"
+    compatible_runtimes = ["python3.13"]
 }
 
 # Archive each Python file into a zip

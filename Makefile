@@ -23,7 +23,7 @@ server:
 deploy/.terraform:
 	@terraform -chdir=deploy init
 
-remote-deploy: deploy/.terraform
+remote-deploy: deploy/.terraform $(BASE_LAYER_DIR)/base_layer.zip $(HELPER_LAYER_DIR)/helper_layer.zip
 	@terraform -chdir=deploy apply -auto-approve
 
 remote-destroy: deploy/.terraform
