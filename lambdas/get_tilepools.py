@@ -11,12 +11,28 @@ def lambda_handler(event, context):
         size = int(query_params.get("size", 25))
         page = int(query_params.get("page", 1))
     except ValueError:
-        return {"statusCode": 400, "body": "Incorrect query param type"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 400,
+            "body": "Incorrect query param type",
+        }
 
     try:
         sort = SortMethod(query_params.get("sort", SortMethod.DEFAULT))
     except ValueError:
-        return {"statusCode": 400, "body": "Invalid sort method"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 400,
+            "body": "Invalid sort method",
+        }
 
     if "sortAsc" in query_params:
         sort_asc = query_params["sortAsc"].lower() in ("true", "1", "t", "yes")
@@ -25,7 +41,15 @@ def lambda_handler(event, context):
     db = get_pool_manager()
 
     if (results := db.get_tile_pools(size, page, sort, sort_asc)) is None:
-        return {"statusCode": 200, "body": json.dumps([])}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 200,
+            "body": json.dumps([]),
+        }
 
     body = []
     for result in results:
@@ -40,4 +64,12 @@ def lambda_handler(event, context):
             item["free_tile"] = tile_to_dict(free)
         body.append(item)
 
-    return {"statusCode": 200, "body": json.dumps(body)}
+    return {
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        },
+        "statusCode": 200,
+        "body": json.dumps(body),
+    }

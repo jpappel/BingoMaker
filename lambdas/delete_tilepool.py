@@ -10,4 +10,11 @@ def lambda_handler(event, context):
 
     statusCode = 204 if db.delete_tile_pool(tilepool_id) else 404
 
-    return {"statusCode": statusCode}
+    return {
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        },
+        "statusCode": statusCode,
+    }

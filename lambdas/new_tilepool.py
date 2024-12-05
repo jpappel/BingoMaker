@@ -10,9 +10,25 @@ def lambda_handler(event, context):
     db = get_pool_manager()
 
     if not (data := json.loads(event["body"])):
-        return {"statusCode": 400, "body": "Missing request data"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 400,
+            "body": "Missing request data",
+        }
     if not (name := data.get("name")) or not (recv_tiles := data.get("tiles")):
-        return {"statusCode": 400, "body": "Missing tilepool name or tiles"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 400,
+            "body": "Missing tilepool name or tiles",
+        }
     # TODO: get owner from cognito
     owner = "<SYSTEM OWNER>"
 
@@ -23,13 +39,37 @@ def lambda_handler(event, context):
         else:
             pool = TilePool(tiles)
     except (ValueError, KeyError):
-        return {"statusCode": 400, "body": "Incorrect tile format"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 400,
+            "body": "Incorrect tile format",
+        }
 
     if not (id_ := db.insert_tile_pool(name, owner, pool)):
-        return {"statusCode": 500, "body": "Internal Server Error"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 500,
+            "body": "Internal Server Error",
+        }
 
     if not (result := db.get_tile_pool(id_)):
-        return {"statusCode": 500, "body": "Error storing tilepool in database"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 500,
+            "body": "Error storing tilepool in database",
+        }
 
     body = {
         "id": id_,
@@ -41,4 +81,12 @@ def lambda_handler(event, context):
     if free := result["tiles"].free:
         body["free_tile"] = tile_to_dict(free)
 
-    return {"statusCode": 201, "body": json.dumps(body)}
+    return {
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        },
+        "statusCode": 201,
+        "body": json.dumps(body),
+    }

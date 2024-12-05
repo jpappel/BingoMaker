@@ -5,6 +5,9 @@ DEPLOY_NAME := BingoMaker
 DEPLOY_WORKERS := 3
 DEPLOY_BIND := 0.0.0.0:80
 
+BASE_LAYER_DIR := layers/base_layer
+HELPER_LAYER_DIR := layers/helper_layer
+
 all: lint test
 
 lint:
@@ -46,10 +49,6 @@ test-all:
 	@docker compose down
 
 # Lambdas
-
-
-BASE_LAYER_DIR := layers/base_layer
-HELPER_LAYER_DIR := layers/helper_layer
 
 $(BASE_LAYER_DIR):
 	mkdir -p $@

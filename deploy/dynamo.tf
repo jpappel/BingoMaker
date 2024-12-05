@@ -1,7 +1,7 @@
 
 # DynamoDB Table
 resource "aws_dynamodb_table" "bingo_maker" {
-  name         = "BingoMaker"
+  name         = var.dynamodb_table_name
   hash_key     = "id"
   billing_mode = "PROVISIONED"
 

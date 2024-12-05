@@ -9,12 +9,28 @@ def lambda_handler(event, context):
     try:
         tilepool_id = event["pathParameters"]["tilepoolId"]
     except KeyError:
-        return {"statusCode": 404, "body": "No tilepool found"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 404,
+            "body": "No tilepool found",
+        }
 
     db = get_pool_manager()
 
     if not (result := db.get_tile_pool(tilepool_id)):
-        return {"statusCode": 404, "body": "No tilepool found"}
+        return {
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            },
+            "statusCode": 404,
+            "body": "No tilepool found",
+        }
 
     body = {
         "id": result["id"],
@@ -27,4 +43,12 @@ def lambda_handler(event, context):
     if free := result["tiles"].free:
         body["free_tile"] = tile_to_dict(free)
 
-    return {"statusCode": 200, "body": json.dumps(body)}
+    return {
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        },
+        "statusCode": 200,
+        "body": json.dumps(body),
+    }

@@ -14,7 +14,7 @@ resource "aws_lambda_function" "functions" {
   for_each = data.local_file.lambda_files
 
   function_name = replace(each.key, ".py", "")
-  handler       = "lambda_handler"
+  handler       = "${replace(each.key, ".py", "")}.lambda_handler"
   runtime       = "python3.13"
   timeout       = 5
 
@@ -49,8 +49,4 @@ data "archive_file" "function_zip" {
   source_file = "../lambdas/${each.key}" # Reference the function source dir
   type        = "zip"
   output_path = "../lambdas/${each.key}.zip" # Zipping each function folder
-}
-
-output "lambda_files" {
-  value = data.local_file.lambda_files
 }

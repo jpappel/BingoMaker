@@ -1,0 +1,492 @@
+openapi: 3.0.3
+info:
+  title: Bingo  Maker API
+  description: A service for creating and managing tile pools containing text or image tiles, generating bingo cards from tile pools, and uploading images to be used in a tile pool.
+  version: 0.3.2
+
+tags:
+  - name: Tile Pools
+    description: Operations related to managing collections (pools) of tiles.
+  - name: Bingo Cards
+    description: Operations related to generating bingo cards based on tile pools.
+  - name: Images
+    description: Operations related to saving, retrieving, and deleting images.
+
+paths:
+  /tilepools:
+    get:
+      summary: List all available tile pools
+      description: Retrieve a list of all available tile pools.
+      parameters:
+        - name: size
+          in: query
+          required: false
+          description: The maximum number of tile pools to return
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          description: The page number of pools to return
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          required: false
+          description: The method to sort pools by
+          schema:
+            type: string
+            enum: [age, name, owner, default]
+            default: default
+        - name: sortAsc
+          in: query
+          required: false
+          description: Sort pools in ascending order
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: A JSON array of available tile pools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TilePool'
+      tags:
+        - Tile Pools
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepools-get-function-arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+    post:
+      summary: Create a new tile pool
+      description: Add a new tile pool by specifying a list of text/image tiles.
+      requestBody:
+        description: Tile pool object to be created
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTilePool'
+      responses:
+        '201':
+          description: Tile pool successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TilePool'
+        '400':
+          description: Invalid input provided
+      tags:
+        - Tile Pools
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepools-post-function-arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+  /tilepools/{tilepoolId}:
+    get:
+      summary: Get details of a specific tile pool
+      description: Retrieve details of a tile pool by its ID.
+      parameters:
+        - name: tilepoolId
+          in: path
+          required: true
+          description: The ID of the tile pool to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A JSON object with tile pool details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TilePool'
+        '404':
+          description: Tile pool not found
+      tags:
+        - Tile Pools
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-get-by-id-function-arn}/invocations
+        httpMethod: GET
+        type: aws_proxy
+
+    patch:
+      summary: Update a tile pool (add or remove tiles)
+      description: Modify the contents of an existing tile pool by adding or removing text/image tiles.
+      parameters:
+        - name: tilepoolId
+          in: path
+          required: true
+          description: The ID of the tile pool to update
+          schema:
+            type: string
+      requestBody:
+        description: Provide a list of text or image tiles to add or remove from the tile pool
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TilePoolUpdate'
+      responses:
+        '200':
+          description: Tile pool successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TilePool'
+        '404':
+          description: Tile pool not found
+        '400':
+          description: Invalid input provided
+      tags:
+        - Tile Pools
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-patch-by-id-function-arn}/invocations
+        httpMethod: PATCH
+        type: aws_proxy
+
+    delete:
+      summary: Delete a tile pool
+      description: Remove a tile pool from the collection by its ID.
+      parameters:
+        - name: tilepoolId
+          in: path
+          required: true
+          description: The ID of the tile pool to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Tile pool successfully deleted
+        '404':
+          description: Tile pool not found
+      tags:
+        - Tile Pools
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-delete-by-id-function-arn}/invocations
+        httpMethod: DELETE
+        type: aws_proxy
+
+  /bingocard/{tilepoolId}:
+    get:
+      summary: Generate a bingo card from a tile pool
+      description: Generate a bingo card based on the tiles from an existing tile pool.
+      parameters:
+        - name: tilepoolId
+          in: path
+          required: true
+          description: The ID of the tile pool to generate the bingo card from
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          description: The size (width and height) of the bingo card (e.g., 5 for a 5x5 grid)
+          schema:
+            type: integer
+            default: 5
+        - name: seed
+          in: query
+          required: false
+          description: The seed to use when generating a bingo card
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A JSON object representing the generated bingo card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BingoCard'
+        '404':
+          description: Tile pool not found
+        '400':
+          description: Invalid input or request parameters
+      tags:
+        - Bingo Cards
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${bingocard-get-by-id-function-arn}/invocations
+        httpMethod: GET
+        type: aws_proxy
+
+  /images:
+    post:
+      summary: Upload an image or gif
+      description: Upload an image or gif
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: Image successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: string
+                description: The ID of the image
+          links:
+            GetImage:
+              operationId: getImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `GET /images/{image_id}`
+            ConfirmImage:
+              operationId: confirmImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `POST /images/{image_id}/confirm`
+            UnconfirmImage:
+              operationId: unconfirmImage
+              parameters:
+                image_id: $response.body
+              description: >
+                The response can be used as the `image_id` in
+                `POST /images/{image_id}/unconfirm`
+        '400':
+          description: Image could not be uploaded
+      tags:
+        - Images
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_templates"
+        type: "mock"
+  /images/{image_id}:
+    get:
+      summary: Get an image
+      operationId: getImage
+      description: Get or redirect to an image
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          description: The image id to retrieve
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Successfully retrieved the image
+          content:
+            application/octet-stream:
+              schema:
+               type: string
+               format: binary
+        '302':
+          description: Redirect to an external URI
+        '404':
+          description: Image not found
+      tags:
+        - Images
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        responses:
+          default:
+            statusCode: "202"
+        passthroughBehavior: "when_no_templates"
+        type: "mock"
+  /images/{image_id}/confirm:
+    post:
+      summary: Confirm an image
+      description: Confirm an image reference
+      operationId: confirmImage
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Defence count incremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageReferenceCounts'
+        '404':
+          description: Image not found
+      tags:
+        - Images
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_templates"
+        type: "mock"
+  /images/{image_id}/unconfirm:
+    post:
+      summary: Unconfirm an Image
+      description: Decrement the refence count of an Image
+      operationId: unconfirmImage
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dereference count decremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageReferenceCounts'
+        '404':
+          description: Image not found
+      tags:
+        - Images
+      x-amazon-apigateway-integration:
+        credentials: ${lab-role-arn}
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_templates"
+        type: "mock"
+
+
+
+components:
+  schemas:
+    TilePool:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the tile pool
+        name:
+          type: string
+          description: The name of the tile pool
+        tiles:
+          type: array
+          description: A list of tiles (each tile can be a text label or image URL)
+          items:
+            $ref: '#/components/schemas/Tile'
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp of when the tile pool was created
+        owner:
+          type: string
+          description: The user who owns the tile pool
+        free_tile:
+          $ref: '#/components/schemas/Tile'
+      required:
+        - id
+        - name
+        - tiles
+        - created_at
+        - owner
+
+    NewTilePool:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A name for the new tile pool
+        tiles:
+          type: array
+          description: A list of new tiles (text or image URLs) to include in the pool
+          items:
+            $ref: '#/components/schemas/Tile'
+        free_tile:
+          $ref: '#/components/schemas/Tile'
+
+      required:
+        - name
+        - tiles
+
+    TilePoolUpdate:
+      type: object
+      properties:
+        removals:
+          type: array
+          description: Content of tiles that should be removed
+          items:
+            type: string
+        insertions:
+          type: array
+          description: A list of tiles to add to a pool
+          items:
+            $ref: '#/components/schemas/Tile'
+    
+    Tile:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [text, image]
+          description: The type of tile; it can either be 'text' or 'image'
+        content:
+          type: string
+          description: The content of the tile (either a text string or image URL)
+        tags:
+          type: array
+          description: A array containing the tags for this tile
+          items:
+            type: string
+            description: A descriptor for the tile 
+          
+      required:
+        - type
+        - content
+
+    BingoCard:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique ID of the generated bingo card
+        tiles:
+          type: array
+          description: A array representing the bingo card layout with tile content.
+          items:
+            $ref: '#/components/schemas/Tile'
+        size:
+          type: integer
+          description: The dimensions (size x size) of the bingo card grid
+      required:
+        - id
+        - tiles
+        - size
+    ImageReferenceCounts:
+      type: object
+      properties:
+        confirmed:
+          type: integer
+        unconfirmed:
+          type: integer
+      required:
+        - confirmed
+        - unconfirmed

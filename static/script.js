@@ -280,6 +280,7 @@ let currentTilePoolName = null;
     let defaultTilepoolId = 'nouns'; // default to 'nouns'
   
       const response = await fetch(`https://nas8lsehb7.execute-api.us-east-1.amazonaws.com/test/tilesets`,
+        { mode: 'no-cors' }
       );
       if (!response.ok) {
       }
@@ -351,7 +352,8 @@ let currentTilePoolName = null;
   
     try {
       // Fetch the tile pool to get its name
-      const tilePoolResponse = await fetch(`${server_ip}/tilepools/${tilepoolId}`);
+      const tilePoolResponse = await fetch(`${server_ip}/tilepools/${tilepoolId}`,         { mode: 'no-cors' }
+      );
       if (!tilePoolResponse.ok) {
         throw new Error('Failed to fetch tile pool');
       }
@@ -359,7 +361,8 @@ let currentTilePoolName = null;
       currentTilePoolName = tilePoolData.name; // Store the tile pool name
   
       // Fetch the bingo card
-      const response = await fetch(`${server_ip}/bingocard/${tilepoolId}?size=${size}&seed=${seed}`);
+      const response = await fetch(`${server_ip}/bingocard/${tilepoolId}?size=${size}&seed=${seed}`,         { mode: 'no-cors' }
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch bingo card');
       }
@@ -380,6 +383,7 @@ let currentTilePoolName = null;
     try {
       const response = await fetch(`${server_ip}/tilepools`, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
