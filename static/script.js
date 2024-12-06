@@ -279,7 +279,7 @@ let currentTilePoolName = null;
     // Fetch list of tile pools to get a default tilepoolId
     let defaultTilepoolId = 'nouns'; // default to 'nouns'
   
-      const response = await fetch(`https://nas8lsehb7.execute-api.us-east-1.amazonaws.com/test/tilesets`,
+      const response = await fetch(`${server_ip}/tilepools`,
         { mode: 'no-cors' }
       );
       if (!response.ok) {
@@ -383,7 +383,6 @@ let currentTilePoolName = null;
     try {
       const response = await fetch(`${server_ip}/tilepools`, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
