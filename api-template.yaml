@@ -113,7 +113,7 @@ paths:
       x-amazon-apigateway-integration:
         credentials: ${lab-role-arn}
         uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-get-by-id-function-arn}/invocations
-        httpMethod: GET
+        httpMethod: POST
         type: aws_proxy
 
     patch:
@@ -149,7 +149,7 @@ paths:
       x-amazon-apigateway-integration:
         credentials: ${lab-role-arn}
         uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-patch-by-id-function-arn}/invocations
-        httpMethod: PATCH
+        httpMethod: POST
         type: aws_proxy
 
     delete:
@@ -172,7 +172,7 @@ paths:
       x-amazon-apigateway-integration:
         credentials: ${lab-role-arn}
         uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${tilepool-delete-by-id-function-arn}/invocations
-        httpMethod: DELETE
+        httpMethod: POST
         type: aws_proxy
 
   /bingocard/{tilepoolId}:
@@ -215,7 +215,7 @@ paths:
       x-amazon-apigateway-integration:
         credentials: ${lab-role-arn}
         uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${bingocard-get-by-id-function-arn}/invocations
-        httpMethod: GET
+        httpMethod: POST
         type: aws_proxy
 
   /images:
