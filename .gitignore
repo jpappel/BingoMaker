@@ -9,6 +9,9 @@
 __pycache__
 .venv
 
+# presentation
+*.html
+
 .env
 
 # build files

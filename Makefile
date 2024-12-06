@@ -76,6 +76,14 @@ clean:
 	uv run ruff clean
 	rm -rf lambdas/*.zip $(BASE_LAYER_DIR) $(HELPER_LAYER_DIR)/helper_layer.zip
 
+.PHONY: pres
+pres: presentation/presentation.html
+
+PRESENTATION_IMAGES := $(wildcard presentation/*.png)
+
+presentation/presentation.html: presentation/presentation.md $(PRESENTATION_IMAGES)
+	pandoc -t revealjs --slide-level=2 -so $@ $<
+
 info:
 	@printf "%s\n" \
 		"Targets:" \
@@ -88,6 +96,9 @@ info:
 		"clean    - clear caches for project tools" \
 		"server   - run a a development server" \
 		"deploy   - deploy application using gunicorn" \
+		"remote-deploy  - deploy application using terraform" \
+		"remote-destroy - destroy application using terraform" \
+		"pres     - render the presentation" \
 		"remote-deploy - deploy application using terraform" \
 		"remote-destroy - destroy application using terraform" \
 		"lambdas   - build all lambda layers and functions"
