@@ -6,6 +6,8 @@ from lambda_helper import get_pool_manager
 from bingomaker.data.persistence import tile_to_dict
 from bingomaker.game import Board
 
+db = get_pool_manager()
+
 
 def lambda_handler(event, context):
     try:
@@ -35,8 +37,6 @@ def lambda_handler(event, context):
             "statusCode": 400,
             "body": "Bad query params",
         }
-
-    db = get_pool_manager()
 
     if not (result := db.get_tile_pool(tilepool_id)):
         return {
