@@ -279,9 +279,7 @@ let currentTilePoolName = null;
     // Fetch list of tile pools to get a default tilepoolId
     let defaultTilepoolId = 'nouns'; // default to 'nouns'
   
-      const response = await fetch(`${server_ip}/tilepools`,
-        { mode: 'no-cors' }
-      );
+      const response = await fetch(`${server_ip}/tilepools`);
       if (!response.ok) {
       }
       const tilepools = await response.json();
@@ -352,8 +350,7 @@ let currentTilePoolName = null;
   
     try {
       // Fetch the tile pool to get its name
-      const tilePoolResponse = await fetch(`${server_ip}/tilepools/${tilepoolId}`,         { mode: 'no-cors' }
-      );
+      const tilePoolResponse = await fetch(`${server_ip}/tilepools/${tilepoolId}`);
       if (!tilePoolResponse.ok) {
         throw new Error('Failed to fetch tile pool');
       }
@@ -361,8 +358,7 @@ let currentTilePoolName = null;
       currentTilePoolName = tilePoolData.name; // Store the tile pool name
   
       // Fetch the bingo card
-      const response = await fetch(`${server_ip}/bingocard/${tilepoolId}?size=${size}&seed=${seed}`,         { mode: 'no-cors' }
-      );
+      const response = await fetch(`${server_ip}/bingocard/${tilepoolId}?size=${size}&seed=${seed}`);
       if (!response.ok) {
         throw new Error('Failed to fetch bingo card');
       }
