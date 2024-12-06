@@ -5,10 +5,9 @@ from lambda_helper import get_pool_manager
 from bingomaker.data.persistence import dict_to_tile, tile_to_dict
 from bingomaker.game.game import TilePool
 
+db = get_pool_manager()
 
 def lambda_handler(event, context):
-    db = get_pool_manager()
-
     if not (data := json.loads(event["body"])):
         return {
             "headers": {

@@ -4,10 +4,10 @@ from lambda_helper import get_pool_manager
 
 from bingomaker.data.persistence import dict_to_tile, tile_to_dict
 
+db = get_pool_manager()
 
 def lambda_handler(event, context):
     tilepool_id = event["pathParameters"]["tilepoolId"]
-    db = get_pool_manager()
 
     if not (data := json.loads(event["body"])):
         return {

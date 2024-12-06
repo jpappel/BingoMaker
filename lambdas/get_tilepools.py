@@ -4,6 +4,7 @@ from lambda_helper import get_pool_manager
 
 from bingomaker.data.persistence import SortMethod, tile_to_dict
 
+db = get_pool_manager()
 
 def lambda_handler(event, context):
     query_params = event.get("queryStringParameters", {}) or {}
@@ -38,7 +39,6 @@ def lambda_handler(event, context):
         sort_asc = query_params["sortAsc"].lower() in ("true", "1", "t", "yes")
     else:
         sort_asc = True
-    db = get_pool_manager()
 
     if (results := db.get_tile_pools(size, page, sort, sort_asc)) is None:
         return {

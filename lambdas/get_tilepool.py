@@ -4,6 +4,7 @@ from lambda_helper import get_pool_manager
 
 from bingomaker.data.persistence import tile_to_dict
 
+db = get_pool_manager()
 
 def lambda_handler(event, context):
     try:
@@ -18,8 +19,6 @@ def lambda_handler(event, context):
             "statusCode": 404,
             "body": "No tilepool found",
         }
-
-    db = get_pool_manager()
 
     if not (result := db.get_tile_pool(tilepool_id)):
         return {
