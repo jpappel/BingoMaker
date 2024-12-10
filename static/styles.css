@@ -88,6 +88,7 @@ body {
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
+  cursor: pointer;
   justify-content: center;
   height: 100px; /* Fixed height for uniform size */
 }
@@ -103,6 +104,15 @@ body {
 
 #cell-13 {
   /*  Style for "FREE" cell  */
+  font-weight: bold;
+}
+
+.marked {
+  background-color: #e0e0e0;
+}
+
+.free-cell {
+  background-color: #f0f0f0;
   font-weight: bold;
 }
 
