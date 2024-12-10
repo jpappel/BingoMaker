@@ -33,8 +33,7 @@
   </div>
 
   <!-- Create New Tile Pool Modal -->
-  <div class="modal fade" id="createTilesetModal" tabindex="-1" aria-labelledby="createTilesetModalLabel"
-    aria-hidden="true">
+  <div class="modal fade" id="createTilesetModal" tabindex="-1" aria-labelledby="createTilesetModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <form id="createTilesetForm">
@@ -46,24 +45,33 @@
           <!-- Modal Body -->
           <div class="modal-body">
             <div class="mb-3">
-              <label for="tileset-name" class="form-label">Tile Pool Name</label>
+              <label for="tileset-name" class="form-label">Tile Pool Name:</label>
               <input type="text" class="form-control" id="tileset-name" required placeholder="Enter tile pool name">
             </div>
             <div class="mb-3">
-              <label for="tileset-tiles" class="form-label">Tiles (one per line)</label>
-              <textarea class="form-control" id="tileset-tiles" rows="10" required
-                placeholder="Enter tiles separated by new lines..."></textarea>
+              <label for="tileset-tiles" class="form-label">Tiles (one per line):</label>
+              <textarea class="form-control" id="tileset-tiles" rows="5" required placeholder="Enter tiles separated by new lines..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="numbered-tiles" class="form-label">Numbered Tiles:</label>
+              <div id="numbered-tiles" class="border p-2" style="max-height: 150px; overflow-y: auto;"></div>
+            </div>
+            <div class="mb-3">
+              <label for="tileset-images" class="form-label">Add Images:</label>
+              <input type="file" class="form-control" id="tileset-images" multiple accept="image/*">
+              <div id="image-preview" class="mt-2"></div>
             </div>
           </div>
           <!-- Modal Footer -->
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="create-tileset-btn">Create Tile Pool</button>
+            <button type="submit" class="btn btn-primary">Create Tile Pool</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+
 
   <!-- Bingo Section -->
   <div id="bingo-section" style="display: none;">
@@ -88,27 +96,6 @@
     </div>
   </div>
 
-  <!-- Edit Modal -->
-  <div id="modal" class="modal fade" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h5 class="modal-title" id="editModalLabel">Edit Words</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <textarea id="create-card-input" class="form-control" rows="8"
-            placeholder="Enter words separated by new lines..."></textarea>
-        </div>
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button id="save-btn" class="btn btn-primary">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Saved Cards Modal -->
   <div id="saved-cards-modal" class="modal fade" tabindex="-1" aria-labelledby="savedCardsModalLabel"
@@ -135,6 +122,7 @@
   </div>
 
   <script src="/variables.js"></script>
+  <script src="/game.js"></script>
   <script defer src="/script.js"></script>
 </body>
 

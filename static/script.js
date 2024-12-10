@@ -14,47 +14,18 @@ const modals = {
     edit: null
 }
 
-// Function to save words from the modal input and update the bingo card
-// FIXME: this needs to be refactored
-function saveWords() {
-    const inputText = document.getElementById('create-card-input').value.trim();
-    if (inputText !== '') {
-        const words = inputText
-            .split('\n')
-            .map((word) => word.trim())
-            .filter((word) => word !== '');
-
-        if (words.length < 24) {
-            alert('Please enter at least 24 words.');
-            return;
-        }
-
-        currentTilePoolName = null; // Clear tile pool name
-        generateBingoCard(words);
-    } else {
-        // If input is empty, fetch a random bingo card
-        fetchBingoCard();
-    }
-    document.getElementById('create-card-input').value = ''; // Clear the input
-}
 
 function initModals() {
     // create bootstrap modals
-    modals.savedCard = new bootstrap.Modal(document.getElementById('saved-cards-modal'))
     modals.createTilepool = new bootstrap.Modal(document.getElementById('createTilesetModal'));
-    modals.edit = new bootstrap.Modal(document.getElementById('modal'));
-
+  
     // add event listeners
-    // NOTE: may not be correct, they all interacted with the edit modal
-    //       originally, could not tell if this was a bug
+    //
     document.getElementById('create-btn')
         .addEventListener('click', () => {
             modals.createTilepool.show();
         });
-    document.getElementById('edit-btn')
-        .addEventListener('click', () => {
-            modals.edit.show();
-        });
+
     document.getElementById('save-btn')
         .addEventListener('click', () => {
             saveWords();
@@ -66,8 +37,67 @@ function login() {
   window.location.href = `${cognito_ip}/login`;
 }
 
-// TODO: new tilepool form
-// TODO: tilepool browser
+// Done: new tilepool form
+const tilesetTilesInput = document.getElementById('tileset-tiles');
+const numberedTilesDiv = document.getElementById('numbered-tiles');
+
+tilesetTilesInput.addEventListener('input', () => {
+  const tiles = tilesetTilesInput.value.split('\n').map(tile => tile.trim()).filter(tile => tile !== '');
+  numberedTilesDiv.innerHTML = '';
+  tiles.forEach((tile, index) => {
+    const tileElement = document.createElement('div');
+    tileElement.textContent = `${index + 1}. ${tile}`;
+    numberedTilesDiv.appendChild(tileElement);
+  });
+});
+document.getElementById('createTilesetForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const tilesetName = document.getElementById('tileset-name').value.trim();
+  const tilesetTiles = document.getElementById('tileset-tiles').value.trim();
+
+  if (!tilesetName || !tilesetTiles) {
+    alert('Please provide a name and tiles for the tile pool.');
+    return;
+  }
+
+  const tiles = tilesetTiles
+    .split('\n')
+    .map(tile => tile.trim())
+    .filter(tile => tile !== '');
+
+  if (tiles.length < 24) {
+    alert('Please enter at least 24 tiles.');
+    return;
+  }
+
+  const newTilePool = {
+    name: tilesetName,
+    tiles: tiles.map(tile => ({ type: 'text', content: tile, tags: [] })),
+    free_tile: {
+      type: 'text',
+      content: 'FREE',
+      tags: [],
+    },
+  };
+
+  await createNewTileset(newTilePool);
+});
+
+
+  // Function to show the bingo section and hide the welcome section
+  function showBingoSection() {
+    const welcomeSection = document.getElementById('welcome-section');
+    if (welcomeSection) {
+      welcomeSection.style.display = 'none';
+    }
+    const bingoSection = document.getElementById('bingo-section');
+    if (bingoSection) {
+      bingoSection.style.display = 'block';
+    }
+  }
+
+  // TODO: tilepool browser
 // TODO: bingocard play
 
 (function () {
@@ -139,41 +169,60 @@ function login() {
               }
           });
   });
-
-  function generateBingoCard(data) {
+  function generateBingoCard(bingocard) {
     const bingoBoard = document.getElementById('bingo-board');
     bingoBoard.innerHTML = ''; // Clear previous cells
-
-    let grid = [];
-
-    if (Array.isArray(data)) {
-        // Input is an array of words
-        let words = data.slice(0, 24); 
-        words.splice(12, 0, 'FREE'); // Insert 'FREE' at the center
-        grid = words.map((word) => ({ content: word }));
-    } else if (data && Array.isArray(data.tiles)) {
-        grid = data.tiles;
-    } else if (data && Array.isArray(data.grid)) {
-        grid = data.grid;
-    } else {
-        console.error('Invalid input for generateBingoCard');
-        return;
+  
+    const { tiles, size } = bingocard;
+  
+    // Validate that the board will have exactly size * size tiles
+    if (tiles.length < size * size) {
+      console.error('Not enough tiles for the specified size');
+      return;
     }
-
-    // Generate the bingo board
-    grid.forEach((tile, index) => {
-        const cell = document.createElement('div');
-        cell.className = 'col bingo-cell';
-        cell.textContent = tile.content || tile; // Handle both object and string types
-
-        if (tile.content === 'FREE' || tile === 'FREE') {
-            cell.classList.add('free-cell', 'marked');
-        }
-
-        bingoBoard.appendChild(cell);
+  
+    // Use only the first size * size tiles
+    const boardTiles = tiles.slice(0, size * size);
+  
+    // Set the grid layout to create a 5x5 bingo board
+    bingoBoard.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    bingoBoard.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+  
+    // Populate the board with tiles
+    boardTiles.forEach((tile, index) => {
+      const cell = document.createElement('div');
+      cell.className = 'col bingo-cell';
+  
+      if (tile.type === 'text') {
+        cell.textContent = tile.content;
+      } else if (tile.type === 'image') {
+        const img = document.createElement('img');
+        img.src = tile.content;
+        img.alt = 'Bingo Tile';
+        img.classList.add('img-fluid');
+        cell.appendChild(img);
+      }
+  
+      // Mark the free tile if applicable
+      if (tile.content === FREE_TILE_CONTENT) {
+        cell.classList.add('free-cell', 'marked');
+      }
+  
+      bingoBoard.appendChild(cell);
     });
+  
+    showSection()
+  }
+  
 
-    showBingoSection();
+
+async function fetchAndGenerateBingoCard(tilepoolId, size, seed) {
+  try {
+    const bingocard = await getBingoCard(tilepoolId, size, seed);
+    generateBingoCard(bingocard);
+  } catch (error) {
+    console.error('Error fetching or generating bingo card:', error);
+  }
 }
 
   // Function to show the bingo section and hide the welcome section
@@ -187,44 +236,8 @@ function login() {
       bingoSection.style.display = 'block';
     }
   }
-
-  function displaySavedCards() {
-    const savedCardsList = document.getElementById('saved-cards-list');
-    if (!savedCardsList) return;
-    savedCardsList.innerHTML = ''; // Clear previous list
-  
-    let savedCards = JSON.parse(localStorage.getItem('savedBingoCards')) || [];
-  
-    if (savedCards.length === 0) {
-      savedCardsList.innerHTML = '<li class="list-group-item">No saved bingo cards.</li>';
-      return;
-    }
-  
-    savedCards.forEach((card, index) => {
-      const cardName = card.name || `Bingo Card ${index + 1}`; // Use card name or default
-  
-      const listItem = document.createElement('li');
-      listItem.textContent = cardName;
-      listItem.classList.add('list-group-item');
-      listItem.style.cursor = 'pointer';
-      listItem.addEventListener('click', () => {
-        loadBingoCard(card);
-        savedCardsModal.hide();
-        showBingoSection();
-      });
-      savedCardsList.appendChild(listItem);
-    });
-  }
   
 
-  function loadBingoCard(card) {
-    const cardData = card.data || card; // Handle both new and old formats
-    const grid = cardData.map((content) => ({ content }));
-    generateBingoCard({ tiles: grid }); // Generate the bingo board with the loaded card data
-  
-    // Set currentTilePoolName if available
-    currentTilePoolName = card.name || null;
-  }
   
 
   async function initPage() {
@@ -238,57 +251,33 @@ function login() {
       bingoSection.style.display = 'none';
     }
   
-    currentTilePoolName = null; // Clear the tile pool name
-  
-    // Fetch list of tile pools to get a default tilepoolId
-    let defaultTilepoolId = 'nouns'; // default to 'nouns'
-  
-      const response = await fetch(`${server_ip}/tilepools`);
-      if (!response.ok) {
-      }
-      const tilepools = await response.json();
-      console.log(tilepools)
-      if (tilepools.length > 0) {
-        defaultTilepoolId = tilepools[0].id;
-      }
-      // Use default 'nouns' if fetching tile pools fails
-  
-    // Store defaultTilepoolId for use in fetchBingoCard
-    window.defaultTilepoolId = defaultTilepoolId;
   }
 
   // Function to create a new tile pool via the API
   async function createNewTileset(tileset) {
-    // console log to inspect the data
-    console.log('Sending new tile pool:', tileset);
-  
     try {
       const response = await fetch(`${server_ip}/tilepools`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(tileset)
+        body: JSON.stringify(tileset),
       });
-  
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to create tile pool: ${response.status} ${errorText}`);
+        throw new Error('Failed to create tile pool');
       }
-  
       const data = await response.json();
       alert('Tile pool created successfully!');
       console.log('Created Tile Pool:', data);
   
-      currentTilePoolName = data.name; // Set the current tile pool name
-  
-      // Generate a bingo card using the new tile pool
-      fetchBingoCard(data.id);
+      // Fetch and generate the bingo card using the new tile pool
+      await fetchAndGenerateBingoCard(data.id, 5);
     } catch (error) {
       console.error('Error:', error);
-      alert(`Error creating tile pool: ${error.message}`);
+      alert('An error occurred while creating the tile pool. Please try again later.');
     }
   }
-  
+    
+  window.createNewTileset = createNewTileset;
 
 })();
