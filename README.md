@@ -1,5 +1,7 @@
 # BingoMaker
 
+![Website Demo](Demo.mp4)
+
 ## Notes
 
 ### Lambdacism
