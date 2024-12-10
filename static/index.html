@@ -19,7 +19,7 @@
       <div class="navbar-nav">
         <!-- <a class="nav-link" href="{{ url_for('tilesets') }}">Tile Sets</a> -->
       </div>
-      <button id="login-btn" class="btn btn-outline-light" type="button">Login</button>
+      <a id="tile-set-button" class="btn btn-outline-light" href="/tilesets.html">Tilesets</a>
     </div>
   </nav>
 
@@ -55,11 +55,6 @@
             <div class="mb-3">
               <label for="numbered-tiles" class="form-label">Numbered Tiles:</label>
               <div id="numbered-tiles" class="border p-2" style="max-height: 150px; overflow-y: auto;"></div>
-            </div>
-            <div class="mb-3">
-              <label for="tileset-images" class="form-label">Add Images:</label>
-              <input type="file" class="form-control" id="tileset-images" multiple accept="image/*">
-              <div id="image-preview" class="mt-2"></div>
             </div>
           </div>
           <!-- Modal Footer -->
