@@ -4,6 +4,7 @@ let editModal;
 let currentTilePoolName = null; 
 
 
+
 // functionality
 // * bingo game
 // * tilepool creation/selection
@@ -12,6 +13,11 @@ const modals = {
     savedCard: null,
     createTilepool: null,
     edit: null
+}
+
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
 }
 
 
@@ -97,7 +103,7 @@ document.getElementById('createTilesetForm').addEventListener('submit', async (e
     }
   }
 
-  // TODO: tilepool browser
+
 
 
 (function () {
@@ -242,18 +248,24 @@ async function fetchAndGenerateBingoCard(tilepoolId, size, seed) {
   
 
   
-
   async function initPage() {
     // Show the welcome section and hide the bingo section
-    const welcomeSection = document.getElementById('welcome-section');
-    if (welcomeSection) {
-      welcomeSection.style.display = 'block';
+
+    const tilepoolId = getQueryParam('tilepoolId');
+
+    if (tilepoolId) {
+      // Use the tilepoolId from the URL to fetch and generate the bingo card
+      await fetchAndGenerateBingoCard(tilepoolId, 5);
+    } else {
+      const welcomeSection = document.getElementById('welcome-section');
+      if (welcomeSection) {
+        welcomeSection.style.display = 'block';
+      }
+      const bingoSection = document.getElementById('bingo-section');
+      if (bingoSection) {
+        bingoSection.style.display = 'none';
+      }
     }
-    const bingoSection = document.getElementById('bingo-section');
-    if (bingoSection) {
-      bingoSection.style.display = 'none';
-    }
-  
   }
 
   // Function to create a new tile pool via the API
