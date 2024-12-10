@@ -98,7 +98,7 @@ document.getElementById('createTilesetForm').addEventListener('submit', async (e
   }
 
   // TODO: tilepool browser
-// TODO: bingocard play
+
 
 (function () {
   // Wait for the DOM to fully load before running scripts
@@ -169,52 +169,55 @@ document.getElementById('createTilesetForm').addEventListener('submit', async (e
               }
           });
   });
-  function generateBingoCard(bingocard) {
+  
+  function generateBingoCard(data) {
     const bingoBoard = document.getElementById('bingo-board');
     bingoBoard.innerHTML = ''; // Clear previous cells
   
-    const { tiles, size } = bingocard;
+    let grid = [];
   
-    // Validate that the board will have exactly size * size tiles
-    if (tiles.length < size * size) {
-      console.error('Not enough tiles for the specified size');
+    if (Array.isArray(data)) {
+      // Input is an array of words
+      let words = data.slice(0, 24); 
+      words.splice(12, 0, 'FREE'); // Insert 'FREE' at the center
+      grid = words.map((word) => ({ content: word }));
+    } else if (data && Array.isArray(data.tiles)) {
+      grid = data.tiles.slice(0, 25); // Ensure exactly 25 tiles for 5x5 grid
+    } else if (data && Array.isArray(data.grid)) {
+      grid = data.grid.slice(0, 25); // Ensure exactly 25 tiles for 5x5 grid
+    } else {
+      console.error('Invalid input for generateBingoCard');
       return;
     }
   
-    // Use only the first size * size tiles
-    const boardTiles = tiles.slice(0, size * size);
-  
-    // Set the grid layout to create a 5x5 bingo board
-    bingoBoard.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-    bingoBoard.style.gridTemplateRows = `repeat(${size}, 1fr)`;
-  
-    // Populate the board with tiles
-    boardTiles.forEach((tile, index) => {
+    // Generate the bingo board
+    grid.forEach((tile) => {
       const cell = document.createElement('div');
-      cell.className = 'col bingo-cell';
+      cell.className = 'bingo-cell';
+      cell.textContent = tile.content || tile; // Handle both object and string types
   
-      if (tile.type === 'text') {
-        cell.textContent = tile.content;
-      } else if (tile.type === 'image') {
-        const img = document.createElement('img');
-        img.src = tile.content;
-        img.alt = 'Bingo Tile';
-        img.classList.add('img-fluid');
-        cell.appendChild(img);
-      }
-  
-      // Mark the free tile if applicable
-      if (tile.content === FREE_TILE_CONTENT) {
+      if (tile.content === 'FREE' || tile === 'FREE') {
         cell.classList.add('free-cell', 'marked');
       }
   
       bingoBoard.appendChild(cell);
     });
   
-    showSection()
+    showBingoSection();
   }
   
-
+  // Update the click handler to use event delegation
+  document.addEventListener('DOMContentLoaded', () => {
+    const bingoBoard = document.getElementById('bingo-board');
+    
+    bingoBoard.addEventListener('click', (event) => {
+      const cell = event.target;
+      if (cell.classList.contains('bingo-cell') && !cell.classList.contains('free-cell')) {
+        cell.classList.toggle('marked');
+        checkBingoWin();
+      }
+    });
+  });
 
 async function fetchAndGenerateBingoCard(tilepoolId, size, seed) {
   try {
